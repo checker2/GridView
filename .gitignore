@@ -1,0 +1,13 @@
+*.dcu
+*.local
+*.identcache
+*.dsk
+*.stat
+*.map
+*.~*
+/Debug
+/Release
+/Win32
+/Win64
+/__history
+/__recovery
