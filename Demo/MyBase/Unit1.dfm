@@ -27,8 +27,10 @@ object Form1: TForm1
     Header.FullSynchronizing = True
     Header.Synchronized = True
     MultiSelect = True
-    ShowCellTips = False
+    ParentShowHint = False
+    ShowCellTips = True
     ShowGridHint = True
+    ShowHint = True
     TabOrder = 0
     OnDblClick = DBGridView1DblClick
   end

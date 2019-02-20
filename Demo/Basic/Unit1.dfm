@@ -20,6 +20,7 @@ object Form1: TForm1
     Width = 635
     Height = 300
     Align = alClient
+    AllowEdit = True
     Columns = <
       item
         Caption = '#'
@@ -113,9 +114,10 @@ object Form1: TForm1
     Header.Flat = False
     Header.FullSynchronizing = True
     Header.Synchronized = True
+    ParentShowHint = False
     Rows.Count = 10
-    RowSelect = True
-    ShowCellTips = False
+    ShowCellTips = True
+    ShowHint = True
     TabOrder = 0
     OnGetCellText = GridView1GetCellText
     OnSetEditText = GridView1SetEditText
