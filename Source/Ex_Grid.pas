@@ -11004,8 +11004,8 @@ end;
 
 function TCustomGridView.IsCellHighlighted(Cell: TGridCell): Boolean;
 begin
-  Result := CellSelected and (Cell.Col >= Fixed.Count) and
-    ((IsCellFocused(Cell) and IsFocusAllowed) or IsRowHighlighted(Cell.Row));
+  Result := (Cell.Col >= Fixed.Count) and
+    ((CellSelected and IsCellFocused(Cell) and IsFocusAllowed) or IsRowHighlighted(Cell.Row));
 end;
 
 function TCustomGridView.IsCellHasCheck(Cell: TGridCell): Boolean;
@@ -11115,7 +11115,7 @@ end;
 
 function TCustomGridView.IsRowHighlighted(Row: Integer): Boolean;
 begin
-  Result := RowSelect and (Row = CellFocused.Row);
+  Result := CellSelected and RowSelect and (Row = CellFocused.Row);
 end;
 
 function TCustomGridView.IsRowVisible(Row: Integer): Boolean;

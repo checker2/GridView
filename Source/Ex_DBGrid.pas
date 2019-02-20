@@ -2664,6 +2664,7 @@ begin
   else // ssCtrl in Shift
   begin
     { смещение курсора с нажатым Ctrl не меняет текущее выделение строк }
+    InvalidateRow(CellFocused.Row);
     DataLink.MoveBy(Distance);
     { исключение: Ctrl+Space инвертирует выделение новой строки и переносит
       на нее маркер выделения }
@@ -3079,7 +3080,7 @@ end;
 function TCustomDBGridView.IsRowHighlighted(Row: Integer): Boolean;
 begin
   if (not MultiSelect) or (Row < 0) or (Rows.Count = 0) then
-    Result := RowSelect and (Row = CellFocused.Row)
+    Result := inherited IsRowHighlighted(Row)
   else
     Result := IsRowMultiSelected(Row);
 end;
