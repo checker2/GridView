@@ -2337,13 +2337,13 @@ begin
           VK_LEFT:
             begin
               MoveBy(0, Shift);
-              KeepSelected := FSelectedRows.CurrentRowSelected;
+              KeepSelected := (not CtrlSelected) or FSelectedRows.CurrentRowSelected;
               SetCursor(CellFocused, KeepSelected, True);
             end;
           VK_RIGHT:
             begin
               MoveBy(0, Shift);
-              KeepSelected := FSelectedRows.CurrentRowSelected;
+              KeepSelected := (not CtrlSelected) or FSelectedRows.CurrentRowSelected;
               SetCursor(CellFocused, KeepSelected, True);
             end;
           VK_UP:
@@ -2385,7 +2385,7 @@ begin
             if ssCtrl in Shift then
             begin
               MoveBy(DBGRID_BOF, Shift);
-              KeepSelected := FSelectedRows.CurrentRowSelected;
+              KeepSelected := (not CtrlSelected) or FSelectedRows.CurrentRowSelected;
               SetCursor(FScrollCell, KeepSelected, True);
             end;
           VK_END:
@@ -2393,7 +2393,7 @@ begin
             if ssCtrl in Shift then
             begin
               MoveBy(DBGRID_EOF, Shift);
-              KeepSelected := FSelectedRows.CurrentRowSelected;
+              KeepSelected := (not CtrlSelected) or FSelectedRows.CurrentRowSelected;
               SetCursor(FScrollCell, KeepSelected, True);
             end;
           VK_SPACE:
