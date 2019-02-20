@@ -504,6 +504,7 @@ type
     procedure SetEditText(Cell: TGridCell; var Value: string); override;
     procedure SetFieldText(Field: TField; const Text: string); virtual;
     procedure Resize; override;
+    procedure ShowCursor; override;
     procedure UpdateData; virtual;
   public
     constructor Create(AOwner: TComponent); override;
@@ -1744,6 +1745,12 @@ begin
   end;
 end;
 
+procedure TCustomDBGridView.ShowCursor;
+begin
+  inherited;
+  InvalidateIndicatorImage(Row);
+end;
+
 procedure TCustomDBGridView.ReadColumns(Reader: TReader);
 begin
   Columns.Clear;
@@ -2287,15 +2294,15 @@ begin
   InvalidateRect(GetIndicatorFixedRect);
 end;
 
-procedure TCustomDBGridView.InvalidateIndicatorImage;
+procedure TCustomDBGridView.InvalidateIndicatorImage(DataRow: Integer);
 begin
-  InvalidateRect(GetIndicatorImageRect(Row));
+  InvalidateRect(GetIndicatorImageRect(DataRow));
 end;
 
 procedure TCustomDBGridView.InvalidateRow(Row: Integer);
 begin
   inherited;
-  InvalidateRect(GetIndicatorImageRect(Row));
+  InvalidateIndicatorImage(Row);
 end;
 
 procedure TCustomDBGridView.InvalidateSelected;
