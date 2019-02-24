@@ -114,6 +114,8 @@ object Form1: TForm1
     Header.Flat = False
     Header.FullSynchronizing = True
     Header.Synchronized = True
+    HighlightFocusCol = True
+    HighlightFocusRow = True
     ParentShowHint = False
     Rows.Count = 10
     ShowCellTips = True
