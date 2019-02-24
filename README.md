@@ -1,12 +1,13 @@
 # GridView
 
-GridView is a Delphi VCL grid component for displaying records, arrays, collections, and any other data in the form of tables. It is a native and fast virtual grid designed to display external data using event handlers without internal data storage like Delphi TStringGrid.
+GridView is a Delphi VCL grid component for displaying records, arrays, collections, and any other data in the form of tables. It is a native and fast virtual grid without internal data storage designed to display external data using event handlers.
 
 
 ## Feautres
 
+- Event-driven architecture.
 - Up to 2147483647 rows.
-- Multiline header.
+- Multiline header with column click support.
 - Windows themes support.
 - Unicode support.
 - DB version included with multiselecting.
