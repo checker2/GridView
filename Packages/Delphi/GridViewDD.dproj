@@ -2,7 +2,7 @@
     <PropertyGroup>
         <ProjectGuid>{CE4032C9-AFE4-42D2-9B04-5A49B2DECB47}</ProjectGuid>
         <MainSource>GridViewDD.dpk</MainSource>
-        <ProjectVersion>18.2</ProjectVersion>
+        <ProjectVersion>18.6</ProjectVersion>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
