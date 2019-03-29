@@ -314,10 +314,29 @@ procedure THeaderEditorForm.RefreshView;
 
   procedure RefreshTree;
 
+    function CalcColumnIndex(Section: TGridHeaderSection): Integer;
+    var
+      Left: TGridHeaderSection;
+    begin
+      if Section.Index > 0 then
+      begin
+        Left := Section.ParentSections[Section.Index - 1];
+        Result := CalcColumnIndex(Left);
+        if Left.Sections.Count > 0 then
+          Inc(Result, Left.Sections.Count)
+        else
+          Inc(Result);
+      end
+      else if Section.Parent <> nil then
+        Result := CalcColumnIndex(Section.Parent)
+      else
+        Result := 0;
+    end;
+
     procedure ProcessNode(Node: TTreeNode; Sections: TGridHeaderSections);
     var
-      I: Integer;
-      R: TRect;
+      I, J: Integer;
+      S: string;
     begin
       if Node.Count > Sections.Count then
       begin
@@ -334,17 +353,23 @@ procedure THeaderEditorForm.RefreshView;
         while I < Sections.Count do
         begin
           Inc(I);
-          with SectionsTree do Selected := Items.AddChild(Node, '');
+          with SectionsTree do
+            Selected := Items.AddChild(Node, '');
         end;
       end;
       for I := 0 to Node.Count - 1 do
       begin
-        if CompareText(Node.Item[I].Text, Sections[I].Caption) <> 0 then
+        S := Sections[I].Caption;
+        { bottom level sections use columns captions if they do not have
+          their own captions (see DisplayText property) but internal
+          FSections is not linked with grid, so section cannot get column
+          caption, and we must calculate it manually }
+        if (Length(S) = 0) and (Sections[I].Sections.Count = 0) then
         begin
-          Node.Item[I].Text := Sections[I].Caption;
-          R := Node.Item[I].DisplayRect(True);
-          InvalidateRect(SectionsTree.Handle, @R, False);
+          J := CalcColumnIndex(Sections[I]);
+          if J < FGrid.Columns.Count then S := FGrid.Columns[J].Caption;
         end;
+        Node.Item[I].Text := S;
         Node.Item[I].Data := Sections[I];
       end;
       for I := 0 to Node.Count - 1 do

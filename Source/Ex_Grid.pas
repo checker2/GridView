@@ -3,12 +3,12 @@
 
   GridView компонент (таблица)
 
-  Версия 1.5
+  Версия 1.6
 
   © Роман М. Мочалов, 1997-2019
   E-mail: checker@mail.ru
 
-  $Id: Ex_Grid.pas, 201901/21 roman Exp $
+  $Id: Ex_Grid.pas, 2019/03/26 roman Exp $
 }
 
 unit Ex_Grid;
@@ -72,7 +72,8 @@ type
                         для секции нет колонки.
 
     Alignment -         Выравнивание текста заголовка по горизонтали.
-    Caption -           Текст заголовка. Соответствует заголовку колонки.
+    Caption -           Текст заголовка. Если не указан, то используется
+                        заголовок колонки.
     Sections -          Список подзаголовков (т.е. секций снизу).
     Width -             Ширина заголовка. Равна ширине соотвествующей колонки
                         или сумме ширин подзаголовков.
@@ -92,6 +93,7 @@ type
     function IsWidthStored: Boolean;
     function GetAllowClick: Boolean;
     function GetBoundsRect: TRect;
+    function GetDisplayText: string;
     function GetFirstColumnIndex: Integer;
     function GetFixedColumn: Boolean;
     function GetHeader: TCustomGridHeader;
@@ -114,6 +116,7 @@ type
     property AllowClick: Boolean read GetAllowClick;
     property BoundsRect: TRect read GetBoundsRect;
     property ColumnIndex: Integer read FColumnIndex;
+    property DisplayText: string read GetDisplayText;
     property FirstColumnIndex: Integer read GetFirstColumnIndex;
     property FixedColumn: Boolean read GetFixedColumn;
     property Header: TCustomGridHeader read GetHeader;
@@ -2570,6 +2573,20 @@ begin
     OffsetRect(Result, Header.Grid.GetGridOrigin.X, 0);
 end;
 
+function TGridHeaderSection.GetDisplayText: string;
+var
+  I: Integer;
+begin
+  Result := Caption;
+  if (Length(Result) = 0) and (not IsSectionsStored) and (Header <> nil) and
+    (Header.Grid <> nil) then
+  begin
+    I := ColumnIndex;
+    if I < Header.Grid.Columns.Count then
+      Result := Header.Grid.Columns[I].Caption;
+  end;
+end;
+
 function TGridHeaderSection.GetFirstColumnIndex: Integer;
 begin
   if Sections.Count > 0 then
@@ -2637,7 +2654,8 @@ end;
 
 function TGridHeaderSection.GetSections: TGridHeaderSections;
 begin
-  if FSections = nil then FSections := TGridHeaderSections.Create(Header, Self);
+  if FSections = nil then
+    FSections := TGridHeaderSections.Create(Header, Self);
   Result := FSections;
 end;
 
@@ -3153,7 +3171,7 @@ procedure TCustomGridHeader.SynchronizeSections;
 var
   C: Integer;
 
-  procedure DoAddSections(Column: Integer; SynchronizeCaption: Boolean);
+  procedure DoAddSections(Column: Integer);
   var
     R: TRect;
   begin
@@ -3174,11 +3192,6 @@ var
         FColumnIndex := Column;
         FBoundsRect := R;
         Width := Grid.Columns[Column].Width;
-        if SynchronizeCaption then
-        begin
-          Caption := Grid.Columns[Column].Caption;
-          Alignment := Grid.Columns[Column].Alignment;
-        end;
       end;
       { следующия колонка }
       Inc(Column);
@@ -3222,24 +3235,22 @@ var
   end;
 
 begin
-  { перед синхронизацией необходимо обновить внутренние параметры секций }
-  UpdateSections;
-  { синхронизируем секции }
   if (Grid <> nil) and (Grid.ComponentState * [csReading, csLoading] = [])
     and (Grid.Columns <> nil) then
   begin
     Sections.BeginUpdate;
     try
+      UpdateSections;
       { заголовок пуст - добавляем все колонки }
       if Sections.Count = 0 then
       begin
-        DoAddSections(0, True);
+        DoAddSections(0);
         Exit;
       end;
       { если секций меньше - добавляем, иначе удаляем лишние }
       C := Sections[Sections.Count - 1].ColumnIndex;
       if C < Grid.Columns.Count - 1 then
-        DoAddSections(C + 1, False)
+        DoAddSections(C + 1)
       else if C > Grid.Columns.Count - 1 then
         DoDeleteSections(Sections);
       { у нижних секций синхронизируем заголовок, выравнивание и шинрину }
@@ -6743,35 +6754,35 @@ begin
   begin
     S := Header.Synchronized;
     try
-      { подправляем ширину колонок }
-      with Columns do
-      begin
-        BeginUpdate;
-        try
-          for I := 0 to Count - 1 do
-          begin
-            { пределы }
-            Columns[I].FMaxWidth := MulDiv(Columns[I].FMaxWidth, M, D);
-            Columns[I].FMinWidth := MulDiv(Columns[I].FMinWidth, M, D);
-            { ширина }
-            Columns[I].DefWidth := MulDiv(Columns[I].DefWidth, M, D);
-          end;
-        finally
-          EndUpdate;
+    { подправляем ширину колонок }
+    with Columns do
+    begin
+      BeginUpdate;
+      try
+        for I := 0 to Count - 1 do
+        begin
+          { пределы }
+          Columns[I].FMaxWidth := MulDiv(Columns[I].FMaxWidth, M, D);
+          Columns[I].FMinWidth := MulDiv(Columns[I].FMinWidth, M, D);
+          { ширина }
+          Columns[I].DefWidth := MulDiv(Columns[I].DefWidth, M, D);
         end;
+      finally
+        EndUpdate;
       end;
-      { подправляем высоту строк }
-      with Rows do
-        Height := MulDiv(Height, M, D);
-      { подправляем высоту секции заголовка и шрифта }
-      with Header do
-      begin
-        SectionHeight := MulDiv(SectionHeight, M, D);
-        if not GridFont then Font.Size := MulDiv(Font.Size, M, D);
-      end;
-      { подправляем высоту шрифта фиксированных }
-      with Fixed do
-        if not GridFont then Font.Size := MulDiv(Font.Size, M, D);
+    end;
+    { подправляем высоту строк }
+    with Rows do
+      Height := MulDiv(Height, M, D);
+    { подправляем высоту секции заголовка и шрифта }
+    with Header do
+    begin
+      SectionHeight := MulDiv(SectionHeight, M, D);
+      if not GridFont then Font.Size := MulDiv(Font.Size, M, D);
+    end;
+    { подправляем высоту шрифта фиксированных }
+    with Fixed do
+      if not GridFont then Font.Size := MulDiv(Font.Size, M, D);
     finally
       Header.Synchronized := S;
     end;
@@ -10147,8 +10158,7 @@ begin
   { а виден ли текст }
   if Rect.Left < Rect.Right then
   begin
-    { получаем текст заголовка }
-    T := Section.Caption;
+    T := Section.DisplayText;
     TL := Length(T);
     { если есть картинка сортировки - рисуем сначала ее }
     if SD <> gsNone then
