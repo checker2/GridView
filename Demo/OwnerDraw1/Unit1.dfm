@@ -43,8 +43,6 @@ object Form1: TForm1
     ColumnsFullDrag = True
     DefaultHeaderMenu = True
     GridStyle = [gsHorzLine]
-    Header.FullSynchronizing = True
-    Header.Synchronized = True
     HighlightEvenRows = True
     ParentShowHint = False
     Rows.Count = 10

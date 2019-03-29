@@ -11,7 +11,7 @@
   TODO:
     - Если у столбца нет названия поля, то не делать столбец ReadOnly
 
-  $Id: Ex_DBGrid.pas, 2019/01/21 roman Exp $
+  $Id: Ex_DBGrid.pas, 2019/03/26 roman Exp $
 }
                                             
 unit Ex_DBGrid;
@@ -37,22 +37,17 @@ type
   }
 
   TDBGridHeader = class(TCustomGridHeader)
-  public
-    constructor Create(AGrid: TCustomGridView); override;
   published
     property AutoHeight;
-    property AutoSynchronize;
     property Color;
     property Images;
     property Flat;
     property Font;
-    property FullSynchronizing default False;
     property GridColor;
     property GridFont;
     property PopupMenu;
     property Sections;
     property SectionHeight;
-    property Synchronized;
   end;
 
 { TDBGridColumn }
@@ -744,14 +739,6 @@ uses
   Themes, DBConsts;
 
 {$R *.RES}
-
-{ TDBGridHeader }
-
-constructor TDBGridHeader.Create(AGrid: TCustomGridView);
-begin
-  inherited;
-  FullSynchronizing := False;
-end;
 
 { TDBGridColumn }
 
@@ -3419,8 +3406,7 @@ begin
     else
       Columns.Clear;
     { синхронизируем заголовок }
-    Header.FullSynchronizing := True;
-    Header.Synchronized := True;
+    Header.SynchronizeSections;
   end
   else
     { сбрасываем ссылку на поле существующих колонок }

@@ -29,8 +29,6 @@ type
     IndexEdit: TEdit;
     CaptionLabel: TLabel;
     CaptionEdit: TEdit;
-    WidthLabel: TLabel;
-    WidthEdit: TEdit;
     AlignmentLabel: TLabel;
     AlignmentCombo: TComboBox;
     WordWrapCheck: TCheckBox;
@@ -159,14 +157,6 @@ begin
       SetFocus;
       raise;
     end;
-    with WidthEdit do
-    try
-      if StrToIntDef(Text, -1) < 0 then
-        raise EHeaderError.CreateFmt('Invalid column width (%s)', [Text]);
-    except
-      SetFocus;
-      raise;
-    end;
   end;
 end;
 
@@ -180,7 +170,6 @@ begin
       S := TGridHeaderSection(Selected.Data);
       IndexEdit.Text := IntToStr(S.Index);
       CaptionEdit.Text := S.Caption;
-      WidthEdit.Text := IntToStr(S.Width);
       AlignmentCombo.ItemIndex := Ord(S.Alignment);
       WordWrapCheck.Checked := S.WordWrap;
     end;
@@ -277,7 +266,6 @@ begin
       S := TGridHeaderSection(Selected.Data);
       S.Index := StrToIntDef(IndexEdit.Text, S.Index);
       S.Caption := CaptionEdit.Text;
-      S.Width := StrToIntDef(WidthEdit.Text, S.Width);
       S.Alignment := TAlignment(AlignmentCombo.ItemIndex);
       S.WordWrap := WordWrapCheck.Checked;
     end;
@@ -296,7 +284,6 @@ procedure THeaderEditorForm.RefreshView;
     SectionsTree.OnChanging := nil;
     IndexEdit.OnChange := nil;
     CaptionEdit.OnChange := nil;
-    WidthEdit.OnChange := nil;
     AlignmentCombo.OnChange := nil;
     WordWrapCheck.OnClick := nil;
   end;
@@ -307,7 +294,6 @@ procedure THeaderEditorForm.RefreshView;
     SectionsTree.OnChanging := SectionsTreeChanging;
     IndexEdit.OnChange := EnableApply;
     CaptionEdit.OnChange := EnableApply;
-    WidthEdit.OnChange := EnableApply;
     AlignmentCombo.OnChange := EnableApply;
     WordWrapCheck.OnClick := EnableApply;
   end;
@@ -393,7 +379,6 @@ procedure THeaderEditorForm.RefreshView;
       begin
         WordWrapcheck.Checked := False;
         AlignmentCombo.ItemIndex := -1;
-        WidthEdit.Text := '';
         CaptionEdit.Text := '';
         IndexEdit.Text := '';
         DeleteButton.Enabled := False;

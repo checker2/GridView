@@ -38,15 +38,10 @@ object Form1: TForm1
         Caption = 'Enabled'
         CheckAlignment = taCenter
         CheckKind = gcCheckBox
-        PickList.Strings = (
-          'Enabled'
-          'Disabled')
         ReadOnly = True
         DefWidth = 100
       end>
     ColumnsFullDrag = True
-    Header.FullSynchronizing = True
-    Header.Synchronized = True
     ImageIndexDef = 1
     Images = ImageList1
     ReadOnly = True

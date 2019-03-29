@@ -22,10 +22,8 @@ object Form1: TForm1
     ColumnClick = True
     ColumnsFullDrag = True
     DataSource = DataSource1
-    GridHint = 'Double click on grid to load data'
+    GridHint = 'Double click on a grid to load data'
     Header.Flat = False
-    Header.FullSynchronizing = True
-    Header.Synchronized = True
     MultiSelect = True
     ParentShowHint = False
     ShowCellTips = True

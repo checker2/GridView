@@ -31,17 +31,11 @@ object Form1: TForm1
         DefWidth = 400
       end>
     Header.Flat = False
-    Header.FullSynchronizing = True
-    Header.Synchronized = True
     ReadOnly = True
     ShowCellTips = False
     TabOrder = 0
     OnGetCellText = GridView1GetCellText
     OnGetSortDirection = GridView1GetSortDirection
     OnHeaderClick = GridView1HeaderClick
-    ExplicitLeft = 232
-    ExplicitTop = 116
-    ExplicitWidth = 185
-    ExplicitHeight = 105
   end
 end

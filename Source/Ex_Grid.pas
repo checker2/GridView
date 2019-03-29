@@ -84,13 +84,11 @@ type
   private
     FSections: TGridHeaderSections;
     FCaption: string;
-    FWidth: Integer;
     FAlignment: TAlignment;
     FWordWrap: Boolean;
     FBoundsRect: TRect;
     FColumnIndex: Integer;
     function IsSectionsStored: Boolean;
-    function IsWidthStored: Boolean;
     function GetAllowClick: Boolean;
     function GetBoundsRect: TRect;
     function GetDisplayText: string;
@@ -104,13 +102,14 @@ type
     function GetSections: TGridHeaderSections;
     function GetVisible: Boolean;
     function GetWidth: Integer;
+    procedure ReadWidth(Reader: TReader);
     procedure SetAlignment(Value: TAlignment);
     procedure SetCaption(const Value: string);
     procedure SetSections(Value: TGridHeaderSections);
-    procedure SetWidth(Value: Integer);
     procedure SetWordWrap(Value: Boolean);
+  protected
+    procedure DefineProperties(Filer: TFiler); override;
   public
-    constructor Create(Collection: TCollection); override;
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;
     property AllowClick: Boolean read GetAllowClick;
@@ -125,10 +124,10 @@ type
     property ParentSections: TGridHeaderSections read GetParentSections;
     property ResizeColumnIndex: Integer read GetResizeColumnIndex;
     property Visible: Boolean read GetVisible;
+    property Width: Integer read GetWidth;
   published
     property Alignment: TAlignment read FAlignment write SetAlignment default taLeftJustify;
     property Caption: string read FCaption write SetCaption;
-    property Width: Integer read GetWidth write SetWidth stored IsWidthStored default 64;
     property WordWrap: Boolean read FWordWrap write SetWordWrap default False;
     property Sections: TGridHeaderSections read GetSections write SetSections stored IsSectionsStored;
   end;
@@ -197,17 +196,11 @@ type
     Width -             Ширина
 
     AutoHeight -        Автоматически подбирать высоту секций.
-    AutoSynchronize -   Автоматически синхронизировать секции заголовка с
-                        колонками.
     Color -             Цвет фона.
     Flat -              Вид отображения секций заголовка. Если Flat = True,
                         то секции заголовока отображаются плоскими, в
                         противном слечае - виде кнопок.
     Font -              Шрифт.
-    FullSynchronizing - Полностью синхронизировать секции заголовка с
-                        колонками, включая текст заголовка и выравнивание
-                        текста. В противном случае синхронизируется только
-                        количество секций с количеством колонок.
     GridColor -         Брать ли в качестве цвета заголовка цвет таблицы.
                         ПРИМЕЧАНИЕ: если GridColor = True, то разделительные
                         линии секций заголовка рисуются одинарными линиями,
@@ -225,8 +218,6 @@ type
                         картинок, 3D эффекта, значения свойства GridColor и
                         высоты шрифта.
     Sections -          Список подзаголовков.
-    Synchronized -      Секции заголовка синхронизированы с колонками
-                        таблицы.
 
     События:
 
@@ -239,9 +230,6 @@ type
     FSections: TGridHeaderSections;
     FSectionHeight: Integer;
     FAutoHeight: Boolean;
-    FSynchronized: Boolean;
-    FAutoSynchronize: Boolean;
-    FFullSynchronizing: Boolean;
     FColor: TColor;
     FGridColor: Boolean;
     FFont: TFont;
@@ -261,21 +249,20 @@ type
     function GetMaxColumn: Integer;
     function GetMaxLevel: Integer;
     function GetWidth: Integer;
+    procedure ReadFullSynchronizing(Reader: TReader);
     procedure SetAutoHeight(Value: Boolean);
-    procedure SetAutoSynchronize(Value: Boolean);
     procedure SetColor(Value: TColor);
     procedure SetFlat(Value: Boolean);
     procedure SetFont(Value: TFont);
-    procedure SetFullSynchronizing(Value: Boolean);
     procedure SetGridColor(Value: Boolean);
     procedure SetGridFont(Value: Boolean);
     procedure SetImages(Value: TImageList);
     procedure SetSections(Value: TGridHeaderSections);
     procedure SetSectionHeight(Value: Integer);
-    procedure SetSynchronized(Value: Boolean);
     procedure SetPopupMenu(const Value: TPopupMenu);
   protected
     procedure Change; virtual;
+    procedure DefineProperties(Filer: TFiler); override;
     procedure GridColorChanged(NewColor: TColor); virtual;
     procedure GridFontChanged(NewFont: TFont); virtual;
   public
@@ -291,35 +278,29 @@ type
     property Width: Integer read GetWidth;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
     property AutoHeight: Boolean read FAutoHeight write SetAutoHeight default True;
-    property AutoSynchronize: Boolean read FAutoSynchronize write SetAutoSynchronize default True;
     property Color: TColor read FColor write SetColor stored IsColorStored default clBtnFace;
     property Images: TImageList read FImages write SetImages;
     property Flat: Boolean read FFlat write SetFlat default True;
     property Font: TFont read FFont write SetFont stored IsFontStored;
-    property FullSynchronizing: Boolean read FFullSynchronizing write SetFullSynchronizing default False;
     property GridColor: Boolean read FGridColor write SetGridColor default False;
     property GridFont: Boolean read FGridFont write SetGridFont default True;
     property PopupMenu: TPopupMenu read FPopupMenu write SetPopupMenu;
     property Sections: TGridHeaderSections read FSections write SetSections stored IsSectionsStored;
     property SectionHeight: Integer read FSectionHeight write SetSectionHeight stored IsSectionHeightStored;
-    property Synchronized: Boolean read FSynchronized write SetSynchronized stored True;
   end;
 
   TGridHeader = class(TCustomGridHeader)
   published
     property AutoHeight;
-    property AutoSynchronize;
     property Color;
     property Images;
     property Flat;
     property Font;
-    property FullSynchronizing;
     property GridColor;
     property GridFont;
     property PopupMenu;
     property Sections;
     property SectionHeight;
-    property Synchronized;
   end;
 
 { TCustomGridColumn }
@@ -1380,8 +1361,7 @@ type
     UpdateFonts -          Обновление шрифтов заголовка и фиксированных при
                            изменении шрифта таблицы.
     UpdateHeader -         Обновление заголовка (приведение в соотвествии с
-                           колонками, если стоит флаг AutoSynchronize или
-                           Synchronized).
+                           колонками).
     UpdateRows -           Обновление параметров строк (например, высоты
                            строки в зависимости от размера картинок и
                            размера шрифта таблицы).
@@ -2516,10 +2496,11 @@ end;
 
 { TGridHeaderSection }
 
-constructor TGridHeaderSection.Create(Collection: TCollection);
+procedure TGridHeaderSection.DefineProperties(Filer: TFiler);
 begin
-  inherited Create(Collection);
-  FWidth := 64;
+  inherited;
+  { backward compatibility }
+  Filer.DefineProperty('Width', ReadWidth, nil, False);
 end;
 
 destructor TGridHeaderSection.Destroy;
@@ -2533,9 +2514,9 @@ begin
   Result := (FSections <> nil) and (FSections.Count > 0);
 end;
 
-function TGridHeaderSection.IsWidthStored: Boolean;
+procedure TGridHeaderSection.ReadWidth(Reader: TReader);
 begin
-  Result := ((FSections = nil) or (FSections.Count = 0)) and (Width <> 64);
+  Reader.ReadInteger;
 end;
 
 function TGridHeaderSection.GetAllowClick: Boolean;
@@ -2727,7 +2708,7 @@ begin
     end;
   end;
   { нет колонки - своя ширина }
-  Result := FWidth;
+  Result := 0;
 end;
 
 procedure TGridHeaderSection.SetAlignment(Value: TAlignment);
@@ -2753,22 +2734,6 @@ begin
   Sections.Assign(Value);
 end;
 
-procedure TGridHeaderSection.SetWidth(Value: Integer);
-begin
-  if (Value >= 0) and (Width <> Value) then
-  begin
-    if (Header <> nil) and (Header.Grid <> nil) then
-      if ColumnIndex > Header.Grid.Columns.Count - 1 then
-        if Sections.Count > 0 then
-        begin
-          with Sections[Sections.Count - 1] do SetWidth(Width + (Value - Self.Width));
-          Exit;
-        end;
-    FWidth := Value;
-    Changed(False);
-  end;
-end;
-
 procedure TGridHeaderSection.SetWordWrap(Value: Boolean);
 begin
   if FWordWrap <> Value then
@@ -2784,7 +2749,6 @@ begin
   begin
     Sections := TGridHeaderSection(Source).Sections;
     Caption := TGridHeaderSection(Source).Caption;
-    Width := TGridHeaderSection(Source).Width;
     Alignment := TGridHeaderSection(Source).Alignment;
     WordWrap := TGridHeaderSection(Source).WordWrap;
     Exit;
@@ -2871,8 +2835,6 @@ begin
   FColor := clBtnFace;
   FSections := TGridHeaderSections.Create(Self, nil);
   FSectionHeight := 17;
-  FSynchronized := True;
-  FAutoSynchronize := True;
   FColor := clBtnFace;
   FFont := TFont.Create;
   FFont.OnChange := FontChange;
@@ -2889,6 +2851,15 @@ begin
   inherited Destroy;
   FreeAndNil(FSections);
   FreeAndNil(FFont);
+end;
+
+procedure TCustomGridHeader.DefineProperties(Filer: TFiler);
+begin
+  inherited DefineProperties(Filer);
+  { backward compatibility }
+  Filer.DefineProperty('FullSynchronizing', ReadFullSynchronizing, nil, False);
+  Filer.DefineProperty('Synchronized', ReadFullSynchronizing, nil, False);
+  Filer.DefineProperty('AutoSynchronize', ReadFullSynchronizing, nil, False);
 end;
 
 function TCustomGridHeader.IsColorStored: Boolean;
@@ -2908,7 +2879,7 @@ end;
 
 function TCustomGridHeader.IsSectionsStored: Boolean;
 begin
-  Result := not ((GetMaxLevel = 0) and FullSynchronizing and Synchronized);
+  Result := not (GetMaxLevel = 0);
 end;
 
 procedure TCustomGridHeader.ImagesChange(Sender: TObject);
@@ -2952,21 +2923,17 @@ begin
   end;
 end;
 
+procedure TCustomGridHeader.ReadFullSynchronizing(Reader: TReader);
+begin
+  Reader.ReadBoolean;
+end;
+
 procedure TCustomGridHeader.SetAutoHeight(Value: Boolean);
 begin
   if FAutoHeight <> Value then
   begin
     FAutoHeight := Value;
     if Value then SetSectionHeight(SectionHeight);
-  end;
-end;
-
-procedure TCustomGridHeader.SetAutoSynchronize(Value: Boolean);
-begin
-  if FAutoSynchronize <> Value then
-  begin
-    FAutoSynchronize := Value;
-    if Value then Synchronized := True;
   end;
 end;
 
@@ -3024,15 +2991,6 @@ begin
   FFont.Assign(Value);
 end;
 
-procedure TCustomGridHeader.SetFullSynchronizing(Value: Boolean);
-begin
-  if FFullSynchronizing <> Value then
-  begin
-    FFullSynchronizing := Value;
-    if Value then Synchronized := False;
-  end;
-end;
-
 procedure TCustomGridHeader.SetGridColor(Value: Boolean);
 begin
   if FGridColor <> Value then
@@ -3057,10 +3015,7 @@ end;
 
 procedure TCustomGridHeader.SetSections(Value: TGridHeaderSections);
 begin
-  { устанавливаем заголовок }
   FSections.Assign(Value);
-  { сбрасываем флаг синхронизации }
-  SetSynchronized(False);
 end;
 
 procedure TCustomGridHeader.SetSectionHeight(Value: Integer);
@@ -3111,24 +3066,9 @@ begin
   end;
 end;
 
-procedure TCustomGridHeader.SetSynchronized(Value: Boolean);
-begin
-  if FSynchronized <> Value then
-  begin
-    FSynchronized := Value;
-    if (Value or FAutoSynchronize) and (Grid <> nil) then
-    begin
-      FSynchronized := True;
-      SynchronizeSections;
-    end;
-  end;
-end;
-
 procedure TCustomGridHeader.Change;
 begin
-  { обновляем секции заголовка }
   UpdateSections;
-  { событие }
   if Assigned(FOnChange) then FOnChange(Self);
 end;
 
@@ -3156,8 +3096,6 @@ begin
   begin
     Sections := TCustomGridHeader(Source).Sections;
     SectionHeight := TCustomGridHeader(Source).SectionHeight;
-    Synchronized := TCustomGridHeader(Source).Synchronized;
-    AutoSynchronize := TCustomGridHeader(Source).AutoSynchronize;
     Color := TCustomGridHeader(Source).Color;
     GridColor := TCustomGridHeader(Source).GridColor;
     Font := TCustomGridHeader(Source).Font;
@@ -3191,7 +3129,6 @@ var
       begin
         FColumnIndex := Column;
         FBoundsRect := R;
-        Width := Grid.Columns[Column].Width;
       end;
       { следующия колонка }
       Inc(Column);
@@ -3222,12 +3159,6 @@ var
       if S.Sections.Count = 0 then
       begin
         C := S.ColumnIndex;
-        S.Width := Grid.Columns[C].Width;
-        if FullSynchronizing then
-        begin
-          S.Caption := Grid.Columns[C].Caption;
-          S.Alignment := Grid.Columns[C].Alignment;
-        end;
       end
       else
         DoSynchronizeSections(S.Sections);
@@ -3634,8 +3565,7 @@ end;
 procedure TCustomGridColumn.DefineProperties(Filer: TFiler);
 begin
   inherited DefineProperties(Filer);
-  { для совместимости со старыми версиями, где вместо свойства WantReturns
-    было свойство Multiline }
+  { backward compatibility }
   Filer.DefineProperty('Multiline', ReadMultiline, nil, False);
 end;
 
@@ -5764,8 +5694,6 @@ begin
     { подправляем фиксированные и заголовок }
     UpdateFixed;
     UpdateHeader;
-    { сбрасываем флаг синхронизации заголовка }
-    if not Header.AutoSynchronize then Header.Synchronized := False;
   end;
   { подправляем параметры }
   UpdateScrollBars;
@@ -6745,15 +6673,12 @@ end;
 
 procedure TCustomGridView.ChangeScale(M, D: Integer);
 var
-  S: Boolean;
   I: Integer;
 begin
   inherited ChangeScale(M, D);
   { а изменился ли масштаб }
   if M <> D then
   begin
-    S := Header.Synchronized;
-    try
     { подправляем ширину колонок }
     with Columns do
     begin
@@ -6783,9 +6708,6 @@ begin
     { подправляем высоту шрифта фиксированных }
     with Fixed do
       if not GridFont then Font.Size := MulDiv(Font.Size, M, D);
-    finally
-      Header.Synchronized := S;
-    end;
   end;
 end;
 
@@ -9439,7 +9361,7 @@ begin
   PaintHeaderSections(Header.Sections, DrawFixed);
   { оставшееся место справа }
   R := GetHeaderRect;
-  R.Left := GetGridRect.Left + Header.GetWidth + GetGridOrigin.X;
+  R.Left := GetGridRect.Left + Header.Width + GetGridOrigin.X;
   if R.Left < R.Right then
   begin
     Dec(R.Left, Ord(StyleServices.Enabled)); // <- артефакт в виде двойной линии при включенных темах
@@ -9853,7 +9775,6 @@ begin
         if W > FColResizeMaxWidth then W := FColResizeMaxWidth;
         { устанавливаем ширину }
         if FColResizeIndex < Columns.Count then Columns[FColResizeIndex].Width := W;
-        Width := W;
       end;
     end;
   finally
@@ -11397,7 +11318,7 @@ procedure TCustomGridView.UpdateHeader;
 begin
   with Header do
   begin
-    if AutoSynchronize or Synchronized then SynchronizeSections else UpdateSections;
+    SynchronizeSections;
     SetSectionHeight(SectionHeight);
   end;
 end;

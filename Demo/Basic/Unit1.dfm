@@ -112,8 +112,6 @@ object Form1: TForm1
     Fixed.Count = 1
     Fixed.Flat = False
     Header.Flat = False
-    Header.FullSynchronizing = True
-    Header.Synchronized = True
     HighlightFocusCol = True
     HighlightFocusRow = True
     ParentShowHint = False

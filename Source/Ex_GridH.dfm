@@ -82,17 +82,9 @@ object HeaderEditorForm: THeaderEditorForm
       Caption = 'Caption:'
       FocusControl = CaptionEdit
     end
-    object WidthLabel: TLabel
-      Left = 12
-      Top = 76
-      Width = 32
-      Height = 13
-      Caption = 'Width:'
-      FocusControl = WidthEdit
-    end
     object AlignmentLabel: TLabel
       Left = 12
-      Top = 102
+      Top = 76
       Width = 51
       Height = 13
       Caption = 'Alignment:'
@@ -116,23 +108,13 @@ object HeaderEditorForm: THeaderEditorForm
       TabOrder = 1
       OnChange = EnableApply
     end
-    object WidthEdit: TEdit
+    object AlignmentCombo: TComboBox
       Left = 98
       Top = 76
       Width = 123
       Height = 21
-      MaxLength = 10
-      TabOrder = 2
-      OnChange = EnableApply
-      OnKeyPress = IndexEditKeyPress
-    end
-    object AlignmentCombo: TComboBox
-      Left = 98
-      Top = 102
-      Width = 123
-      Height = 21
       Style = csDropDownList
-      TabOrder = 3
+      TabOrder = 2
       OnChange = EnableApply
       Items.Strings = (
         'Left'
@@ -141,11 +123,11 @@ object HeaderEditorForm: THeaderEditorForm
     end
     object WordWrapCheck: TCheckBox
       Left = 98
-      Top = 134
+      Top = 108
       Width = 123
       Height = 17
       Caption = 'Word Wrap'
-      TabOrder = 4
+      TabOrder = 3
       OnClick = EnableApply
     end
   end
