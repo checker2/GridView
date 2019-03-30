@@ -109,6 +109,7 @@ type
     procedure SetWordWrap(Value: Boolean);
   protected
     procedure DefineProperties(Filer: TFiler); override;
+    function GetDisplayName: string; override;
   public
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;
@@ -263,12 +264,14 @@ type
   protected
     procedure Change; virtual;
     procedure DefineProperties(Filer: TFiler); override;
+    function GetOwner: TPersistent; override;
     procedure GridColorChanged(NewColor: TColor); virtual;
     procedure GridFontChanged(NewFont: TFont); virtual;
   public
     constructor Create(AGrid: TCustomGridView); virtual;
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;
+    function GetNamePath: string; override;
     procedure SynchronizeSections;
     procedure UpdateSections; virtual;
     property Grid: TCustomGridView read FGrid;
@@ -2554,6 +2557,12 @@ begin
     OffsetRect(Result, Header.Grid.GetGridOrigin.X, 0);
 end;
 
+function TGridHeaderSection.GetDisplayName: string;
+begin
+  Result := DisplayText;
+  if Result = '' then Result := inherited GetDisplayName;
+end;
+
 function TGridHeaderSection.GetDisplayText: string;
 var
   I: Integer;
@@ -2807,7 +2816,8 @@ end;
 
 function TGridHeaderSections.GetOwner: TPersistent;
 begin
-  Result := Header;
+  Result := OwnerSection;
+  if Result = nil then Result := Header;
 end;
 
 procedure TGridHeaderSections.Update(Item: TCollectionItem);
@@ -2908,6 +2918,19 @@ end;
 function TCustomGridHeader.GetMaxLevel: Integer;
 begin
   Result := Sections.MaxLevel;
+end;
+
+function TCustomGridHeader.GetNamePath: string;
+begin
+  if FGrid <> nil then
+    Result := FGrid.Name + '.Header'
+  else
+    Result := inherited GetNamePath;
+end;
+
+function TCustomGridHeader.GetOwner: TPersistent;
+begin
+  Result := FGrid;
 end;
 
 function TCustomGridHeader.GetWidth: Integer;

@@ -181,11 +181,12 @@ begin
   RegisterComponents('GridView', [TGridView, TDBGridView]);
 
   RegisterComponentEditor(TGridView, TGridEditor);
-  RegisterPropertyEditor(TypeInfo(TGridHeaderSections), TGridHeader, 'Sections', TGridHeaderProperty);
+  //RegisterPropertyEditor(TypeInfo(TGridColumns), TGridView, 'Columns', TGridColumnsProperty);
+  //RegisterPropertyEditor(TypeInfo(TGridHeaderSections), TGridHeader, 'Sections', TGridHeaderProperty);
 
   RegisterComponentEditor(TDBGridView, TGridEditor);
   RegisterPropertyEditor(TypeInfo(string), TDBGridColumn, 'FieldName', TDBGridFieldNameProperty);
-//  RegisterPropertyEditor(TypeInfo(TGridHeaderSections), TDBGridHeader, 'Sections', TGridHeaderProperty);
+  //RegisterPropertyEditor(TypeInfo(TGridHeaderSections), TDBGridHeader, 'Sections', TGridHeaderProperty);
 end;
 
 end.
