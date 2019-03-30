@@ -2888,8 +2888,21 @@ begin
 end;
 
 function TCustomGridHeader.IsSectionsStored: Boolean;
+var
+  I: Integer;
+  S: TGridHeaderSection;
 begin
-  Result := not (GetMaxLevel = 0);
+  for I := 0 to Sections.Count - 1 do
+  begin
+    S := Sections[I];
+    if (S.Caption <> '') or (S.Alignment <> taLeftJustify) or S.WordWrap or
+      ((S.FSections <> nil) and (S.Sections.Count > 0)) then
+    begin
+      Result := True;
+      Exit;
+    end;
+  end;
+  Result := False;
 end;
 
 procedure TCustomGridHeader.ImagesChange(Sender: TObject);
