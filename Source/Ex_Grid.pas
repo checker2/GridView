@@ -11265,7 +11265,11 @@ begin
       DoUpdateEdit;
     end;
     { показываем строку }
-    if Activate then FEdit.Show;
+    if Activate then
+    begin
+      CancelCellTips;
+      FEdit.Show;
+    end;
   end
   else
     { гасим строку }
