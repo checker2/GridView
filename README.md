@@ -7,7 +7,7 @@ GridView is a Delphi VCL grid component for displaying records, arrays, collecti
 
 - Event-driven architecture.
 - Up to 2147483647 rows.
-- Multiline header with column click support.
+- Multi-level header with column click support.
 - Windows themes support.
 - Unicode support.
 - DB version included with multiselecting.
