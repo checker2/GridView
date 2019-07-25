@@ -1,10 +1,10 @@
 {
-  Библиотека дополнительных компонентов
+  TGridView component (grid)
 
-  Редактор заголовка компонента TGridView
-
-  © Роман М. Мочалов, 1997-2019
+  (C) Roman M. Mochalov, 1997-2019
   E-mail: checker@mail.ru
+
+  License: MIT
 }
 
 unit Ex_GridH;
@@ -16,9 +16,6 @@ uses
   Ex_Grid;
 
 type
-
-{ THeaderEditorForm }
-
   THeaderEditorForm = class(TForm)
     SectionssGroup: TGroupBox;
     SectionsTree: TTreeView;

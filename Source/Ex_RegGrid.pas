@@ -1,12 +1,10 @@
 {
-  Библиотека дополнительных компонентов
+  TGridView component (grid)
 
-  Регистрация компонента TGridView в Delphi IDE
-
-  © Роман М. Мочалов, 1997-2019
+  (C) Roman M. Mochalov, 1997-2019
   E-mail: checker@mail.ru
 
-  Исправления для Delphi 6: Компанец Илья, iluha@convex.ru
+  License: MIT
 }
 
 unit Ex_RegGrid;
