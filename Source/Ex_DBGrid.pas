@@ -870,6 +870,7 @@ begin
     Alignment := Field.Alignment;
     Caption := Field.DisplayLabel;
     EditMask := Field.EditMask;
+    Visible := Field.Visible;
     if AllowLookup then EditStyle := geDataList
     else if PickListCount > 0 then EditStyle := gePickList
     else EditStyle := geSimple;
