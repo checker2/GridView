@@ -3159,12 +3159,17 @@ var
   procedure GetFields(Fields: TFields);
   var
     I: Integer;
+    Field: TField;
   begin
     for I := 0 to Fields.Count - 1 do
     begin
-      List.Add(Fields[I]);
-      if Fields[I].DataType in [ftADT, ftArray] then
-        GetFields((Fields[I] as TObjectField).Fields);
+      Field := Fields[I];
+      if Field.Visible then
+      begin
+        List.Add(Field);
+        if Field.DataType in [ftADT, ftArray] then
+          GetFields((Field as TObjectField).Fields);
+      end;
     end;
   end;
 
