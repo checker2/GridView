@@ -13,7 +13,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, CommCtrl, Classes, Controls, Graphics, Forms,
-  Dialogs, StdCtrls, Math, ImgList, Ex_Grid, Db, DBCtrls, Types;
+  Dialogs, StdCtrls, Math, ImgList, Ex_Grid, Db, DBCtrls, Types, UITypes;
 
 const
   DBGRID_BOF = -MaxInt;
