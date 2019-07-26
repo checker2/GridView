@@ -2344,7 +2344,7 @@ begin
   if not (ssDouble in Shift) then
   begin
     if ssCtrl in Shift then Shift := Shift + [ssMiddle]; // <- SPACE key simulation
-    if IsCellHighlighted(GetCellAt(X, Y)) then
+    if (not (ssShift in Shift)) and IsCellHighlighted(GetCellAt(X, Y)) then
     begin
       { we cannot start the selection immediately by clicking on the selected
         cell, otherwise the grid will not be able to start dragging }
