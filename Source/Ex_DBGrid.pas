@@ -369,7 +369,6 @@ type
     FFieldText: string;
     FMultiSelect: Boolean;
     FSelectedRows: TDBGridSelectedRows;
-    FContextPopup: Integer;
     FCancelOnDeactivate: Boolean;
     FOnDataChange: TNotifyEvent;
     FOnDataEditError: TDBGridDataErrorEvent;
@@ -405,7 +404,6 @@ type
     procedure ReadColumns(Reader: TReader);
     procedure WriteColumns(Writer: TWriter);
     procedure CMExit(var Message: TMessage); message CM_EXIT;
-    procedure WMContextMenu(var Message: TMessage); message WM_CONTEXTMENU;
     procedure WMKillFocus(var Message: TWMKillFocus); message WM_KILLFOCUS;
     procedure WMSetFocus(var Message: TWMSetFocus); message WM_SETFOCUS;
   protected
@@ -1686,16 +1684,6 @@ begin
     raise;
   end;
   inherited;
-end;
-
-procedure TCustomDBGridView.WMContextMenu(var Message: TMessage);
-begin
-  Inc(FContextPopup);
-  try
-    inherited;
-  finally
-    Dec(FContextPopup);
-  end;
 end;
 
 procedure TCustomDBGridView.WMKillFocus(var Message: TWMKillFocus);
@@ -3003,13 +2991,13 @@ end;
 function TCustomDBGridView.GetGridRect: TRect;
 begin
   Result := inherited GetGridRect;
-  if ShowIndicator and (FContextPopup = 0) then Inc(Result.Left, GetIndicatorWidth);
+  if ShowIndicator then Inc(Result.Left, GetIndicatorWidth);
 end;
 
 function TCustomDBGridView.GetHeaderRect: TRect;
 begin
   Result := inherited GetHeaderRect;
-  if ShowIndicator and (FContextPopup = 0) then Inc(Result.Left, GetIndicatorWidth);
+  if ShowIndicator then Inc(Result.Left, GetIndicatorWidth);
 end;
 
 function TCustomDBGridView.GetIndicatorHeaderRect: TRect;
