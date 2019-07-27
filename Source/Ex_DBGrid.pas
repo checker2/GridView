@@ -193,7 +193,7 @@ type
     procedure WMKillFocus(var Message: TWMSetFocus); message WM_KILLFOCUS;
   protected
     function GetDropList: TWinControl; override;
-    procedure UpdateList; override;
+    procedure UpdateListBounds; override;
     procedure UpdateListItems; override;
     procedure UpdateListValue(Accept: Boolean); override;
     procedure UpdateStyle; override;
@@ -943,11 +943,44 @@ begin
     Result := inherited GetDropList;
 end;
 
-procedure TDBGridEdit.UpdateList;
+procedure TDBGridEdit.UpdateListBounds;
+var
+  I, ItemHeight: Integer;
+  R, Rect: TRect;
+  P: TPoint;
+  Monitor: TMonitor;
 begin
   inherited;
-  if (ActiveList = nil) or (not (ActiveList is TDBGridListBox)) then Exit;
-  TDBGridListBox(ActiveList).RowCount := Self.DropDownCount;
+  if (ActiveList <> nil) and (ActiveList is TDBGridListBox) then
+    with TDBGridListBox(ActiveList) do
+    begin
+      if Self.DropDownCount <> 0 then
+        I := Self.DropDownCount
+      else
+      begin
+        Canvas.Font := Font;
+        ItemHeight := Canvas.TextHeight('Wq');
+        if ItemHeight <> 0 then
+        begin
+          R := Self.ClientRect;
+          P := Self.ClientOrigin;
+          OffsetRect(R, P.X, P.Y);
+          Monitor := Screen.MonitorFromRect(R);
+          if Monitor <> nil then
+            Rect := Monitor.WorkareaRect
+          else
+            Rect := Screen.WorkareaRect;
+          I := ((Rect.Bottom - Rect.Top) div 3) div ItemHeight;
+          if (ListSource <> nil) and (ListSource.DataSet <> nil) and
+            ListSource.DataSet.Active and (I > ListSource.DataSet.RecordCount) then
+            I := ListSource.DataSet.RecordCount;
+        end
+        else
+          I := 0;
+      end;
+      if I < 7 then I := 7;
+      RowCount := I;
+    end;
 end;
 
 procedure TDBGridEdit.UpdateListItems;
