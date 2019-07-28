@@ -1040,6 +1040,7 @@ begin
         if IsLookupField(Grid.EditField, MasterField) and Grid.DataLink.Edit then
         begin
           MasterField.Value := ListValue;
+          Grid.EditField.Value := SelectedItem;
         end;
       end
     else if ActiveList is TGridListBox then
