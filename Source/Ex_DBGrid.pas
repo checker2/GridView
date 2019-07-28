@@ -1963,7 +1963,7 @@ var
   KeepSelected: Boolean;
 begin
   Result := inherited DoMouseWheelDown(Shift, MousePos);
-  if Result and (gkMouseWheel in CursorKeys) then
+  if Result and (gkMouseWheel in CursorKeys) and DataLink.Active then
   begin
     if not (ssShift in Shift) then
     begin
@@ -1985,7 +1985,7 @@ var
   KeepSelected: Boolean;
 begin
   Result := inherited DoMouseWheelUp(Shift, MousePos);
-  if Result and (gkMouseWheel in CursorKeys) then
+  if Result and (gkMouseWheel in CursorKeys) and DataLink.Active then
   begin
     if not (ssShift in Shift) then
     begin
