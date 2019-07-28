@@ -867,7 +867,7 @@ var
   function AllowLookup: Boolean;
   begin
     Result := IsLookupField(Field) and (Grid <> nil) and
-      (Grid.DataLink.Active) and (not Grid.Datalink.ReadOnly);
+      Grid.DataLink.Active and (not Grid.Datalink.ReadOnly);
   end;
 
 begin
@@ -1055,8 +1055,6 @@ begin
 end;
 
 procedure TDBGridEdit.UpdateStyle;
-var
-  MasterField: TField;
 begin
   inherited UpdateStyle;
   { remove the lookup list button and the ellipsis button from the inplace
@@ -1154,7 +1152,7 @@ var
   end;
 
 begin
-  if (Grid = nil) or (not Grid.DataLink.Active) or (Grid.DataLink.DataSet = nil) then Exit;
+  if (Grid = nil) or (not Grid.DataLink.Active) then Exit;
   { get the scroller position }
   FillChar(ScrollInfo, SizeOf(ScrollInfo), 0);
   ScrollInfo.cbSize := SizeOf(ScrollInfo);
@@ -1202,9 +1200,9 @@ begin
   begin
     NewPage := 0;
     NewPos := 0;
-    DataSet := Grid.DataLink.DataSet;
-    if Grid.DataLink.Active and (DataSet <> nil) then
+    if Grid.DataLink.Active then
     begin
+      DataSet := Grid.DataLink.DataSet;
       { for data set that support sequence numbers, set the position of the
         scroll bar to the active record, otherwise setup the scroll bar
         to move up and down }
@@ -1393,9 +1391,14 @@ function TDBGridSelectedRows.Compare(const S1, S2: string): Integer;
 var
   Bookmark1, Bookmark2: TBookmark;
 begin
-  Bookmark1 := StrToBookmark(S1);
-  Bookmark2 := StrToBookmark(S2);
-  Result := FGrid.DataLink.DataSet.CompareBookmarks(Bookmark1, Bookmark2);
+  if FGrid.DataLink.Active then
+  begin
+    Bookmark1 := StrToBookmark(S1);
+    Bookmark2 := StrToBookmark(S2);
+    Result := FGrid.DataLink.DataSet.CompareBookmarks(Bookmark1, Bookmark2);
+  end
+  else
+    Result := 0;
 end;
 
 function TDBGridSelectedRows.CompareStrings(const S1, S2: string): Integer;
@@ -1424,7 +1427,10 @@ end;
 
 function TDBGridSelectedRows.GetCurrentRow: string;
 begin
-  Result := BookmarkToStr(FGrid.DataLink.DataSet.Bookmark);
+  if FGrid.DataLink.Active then
+    Result := BookmarkToStr(FGrid.DataLink.DataSet.Bookmark)
+  else
+    Result := '';
 end;
 
 function TDBGridSelectedRows.GetCurrentRowSelected: Boolean;
@@ -1442,6 +1448,7 @@ var
   Index: Integer;
   Current: string;
 begin
+  if not FGrid.DataLink.Active then Exit;
   Current := CurrentRow;
   if Find(Current, Index) = Value then Exit;
   if Value then
@@ -1548,7 +1555,7 @@ procedure TCustomDBGridView.Insert(AppendMode: Boolean);
 var
   AllowInsert: Boolean;
 begin
-  if (not Datalink.Active) or (DataLink.DataSet = nil) then Exit;
+  if not Datalink.Active then Exit;
   with Datalink.DataSet do
     if (State <> dsInsert) and CanModify and (not ReadOnly) and (not RowSelect) then
     begin
@@ -1571,7 +1578,7 @@ procedure TCustomDBGridView.SelectAll;
 var
   OldCurrent: TBookmark;
 begin
-  if (not Datalink.Active) or (DataLink.DataSet = nil) then Exit;
+  if not Datalink.Active then Exit;
   if (not MultiSelect) or Editing then Exit;
   with DataLink.DataSet, FSelectedRows do
   begin
@@ -1924,7 +1931,7 @@ var
   Msg: string;
   I: Integer;
 begin
-  if (not Datalink.Active) or (DataLink.DataSet = nil) then Exit;
+  if not Datalink.Active then Exit;
   with Datalink.DataSet do
     if (State <> dsInsert) and (not IsEmpty) and CanModify and (not ReadOnly) and
       (not MultiSelect or (FSelectedRows.Count > 0)) then
@@ -2070,7 +2077,7 @@ var
   Bookmark: TBookmark;
   I: Integer;
 begin
-  if DataLink.Active and (DataLink.DataSet <> nil) then
+  if DataLink.Active then
   begin
     DataLink.DataSet.DisableControls;
     try
@@ -2230,7 +2237,7 @@ begin
   if KeyScroll then LockScroll;
   try
     inherited;
-    if (not DataLink.Active) or (DataLink.DataSet = nil) then Exit;
+    if not DataLink.Active then Exit;
     { before changing the active record, the MoveBy method automatically calls
       the DataLink.UpdateRecord method, in which an exception may occur. This
       exception should be intercepted and not allowed to change the position
@@ -2427,7 +2434,7 @@ var
   OldCurrent: TBookmark;
   I, Index1, Index2: Integer;
 begin
-  if (not Datalink.Active) or (DataLink.DataSet = nil) then Exit;
+  if not Datalink.Active then Exit;
   { cancel insertion of a record when user presses the DOWN key in the
     first row or the UP key in the last row of the grid, in other rows the
     insert will be canceled automatically when moving the cursor }
@@ -2609,7 +2616,7 @@ end;
 
 procedure TCustomDBGridView.MoveTo(RecNo: Integer; Shift: TShiftState);
 begin
-  if DataLink.Active and (DataLink.DataSet <> nil) then
+  if DataLink.Active then
   begin
     DataLink.DataSet.RecNo := RecNo;
     MoveBy(0, Shift);
@@ -2923,7 +2930,7 @@ function TCustomDBGridView.IsEvenRow(Cell: TGridCell): Boolean;
 begin
   { alternating rows can be highlighted only for data sources whose number
     of records is known (for example, Paradox, ClientDataSet) }
-  if DataLink.Active and (DataLink.DataSet <> nil) and DataLink.DataSet.IsSequenced then
+  if DataLink.Active and DataLink.DataSet.IsSequenced then
     Result := DataLink.DataSet.RecNo mod 2 <> 0
   else
     Result := inherited IsEvenRow(Cell);
@@ -3164,8 +3171,8 @@ begin
     SetCursor(GridCell(FScrollCell.Col, CellFocused.Row), FScrollSelected, True);
     if (not CancelScroll) and (FScrollCell.Row <> CellFocused.Row) then
     begin
-      if (not DataLink.Active) or (DataLink.DataSet = nil) then Exit;
-      DataLink.MoveBy(FScrollCell.Row - CellFocused.Row);
+      if DataLink.Active then
+        DataLink.MoveBy(FScrollCell.Row - CellFocused.Row);
     end;
   end;
 end;
@@ -3216,7 +3223,7 @@ begin
   if ([csLoading, csDestroying] * ComponentState) <> [] then Exit;
   if FDefaultLayout then
   begin
-    if DataLink.Active and (DataLink.DataSet <> nil) then
+    if DataLink.Active then
     begin
       List := TList.Create;
       try
