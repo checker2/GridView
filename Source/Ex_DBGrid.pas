@@ -198,6 +198,7 @@ type
     procedure UpdateListValue(Accept: Boolean); override;
     procedure UpdateStyle; override;
   public
+    procedure CloseUp(Accept: Boolean); override;
     property Grid: TCustomDBGridView read GetGrid;
   end;
 
@@ -932,6 +933,17 @@ begin
   Result := TCustomDBGridView(inherited Grid);
 end;
 
+procedure TDBGridEdit.CloseUp(Accept: Boolean);
+begin
+  if DropListVisible and (ActiveList <> nil) and (ActiveList is TDBGridListBox) then
+    with TDBGridListBox(ActiveList) do
+    begin
+      ListSource := nil;
+      LookupSource.DataSet := nil;
+    end;
+  inherited;
+end;
+
 function TDBGridEdit.GetDropList: TWinControl;
 begin
   if (EditStyle = geDataList) and (Grid <> nil) and IsLookupField(Grid.EditField) then
@@ -984,6 +996,9 @@ begin
 end;
 
 procedure TDBGridEdit.UpdateListItems;
+var
+  Field: TField;
+  ListBox: TDBGridListBox;
 begin
   if (ActiveList = nil) or (not (ActiveList is TDBGridListBox)) then
   begin
@@ -992,14 +1007,14 @@ begin
   end;
   if (Grid = nil) or (Grid.EditField = nil) then Exit;
   { setup lookup list }
-  with Grid.EditField, TDBGridListBox(ActiveList) do
-  begin
-    LookupSource.DataSet := LookupDataSet;
-    KeyField := LookupKeyFields;
-    ListField := LookupResultField;
-    ListSource := LookupSource;
-    KeyValue := DataSet.FieldByName(KeyFields).Value;
-  end;
+  Field := Grid.EditField;
+  ListBox := TDBGridListBox(ActiveList);
+  ListBox.ListSource := nil; // <- to avoid the exception in the next line
+  ListBox.LookupSource.DataSet := Field.LookupDataSet;
+  ListBox.KeyField := Field.LookupKeyFields;
+  ListBox.ListField := Field.LookupResultField;
+  ListBox.ListSource := ListBox.LookupSource;
+  ListBox.KeyValue := Field.DataSet.FieldByName(Field.KeyFields).Value;
 end;
 
 procedure TDBGridEdit.UpdateListValue(Accept: Boolean);
