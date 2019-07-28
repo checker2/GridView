@@ -833,16 +833,23 @@ begin
   inherited;
 end;
 
-function IsLookupField(Field: TField): Boolean;
-var
-  MasterField: TField;
+function IsLookupField(Field: TField; var MasterField: TField): Boolean; overload;
 begin
-  Result := False;
   if (Field <> nil) and (Field.FieldKind = fkLookup) and (Field.DataSet <> nil) then
   begin
-    MasterField := Field.DataSet.FieldByName(Field.KeyFields);
-    if (MasterField <> nil) and MasterField.CanModify then Result := True;
+    { restriction: multiple key fields are not supported }
+    MasterField := Field.DataSet.FindField(Field.KeyFields);
+    Result := (MasterField <> nil) and MasterField.CanModify;
   end
+  else
+    Result := False;
+end;
+
+function IsLookupField(Field: TField): Boolean; overload;
+var
+  Dummy: TField;
+begin
+  Result := IsLookupField(Field, Dummy);
 end;
 
 function IsReadOnlyField(Field: TField): Boolean;
@@ -1030,13 +1037,10 @@ begin
         ListValue := KeyValue;
         ListSource := nil;
         LookupSource.DataSet := nil;
-        if (Grid.EditField <> nil) and (Grid.EditField.DataSet <> nil) then
-          with Grid.EditField do
-          begin
-            MasterField := DataSet.FindField(KeyFields);
-            if (MasterField <> nil) and MasterField.CanModify and Grid.DataLink.Edit then
-              MasterField.Value := ListValue;
-          end;
+        if IsLookupField(Grid.EditField, MasterField) and Grid.DataLink.Edit then
+        begin
+          MasterField.Value := ListValue;
+        end;
       end
     else if ActiveList is TGridListBox then
       if EditCanModify then
@@ -1063,10 +1067,7 @@ begin
       EditStyle := geSimple
     else if EditStyle = geDataList then
     begin
-      MasterField := nil;
-      if (Grid.EditField <> nil) and (Grid.EditField.DataSet <> nil) then
-        with Grid.EditField do MasterField := DataSet.FindField(KeyFields);
-      if (MasterField = nil) or (not MasterField.CanModify) then EditStyle := geSimple;
+      if not IsLookupField(Grid.EditField) then EditStyle := geSimple;
     end
     else if Grid.IsCellReadOnly(Grid.EditCell) then
       EditStyle := geSimple;
