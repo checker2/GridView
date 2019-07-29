@@ -6416,7 +6416,13 @@ end;
 
 procedure TCustomGridView.CheckClick(Cell: TGridCell);
 begin
-  if Assigned(FOnCheckClick) then FOnCheckClick(Self, Cell);
+  if Assigned(FOnCheckClick) then
+  begin
+    FOnCheckClick(Self, Cell);
+    { usually the state of the check box (and the cell text) changes
+      in the event, so it needs to be redrawn }
+    InvalidateCell(Cell);
+  end;
 end;
 
 procedure TCustomGridView.ColumnAutoSize(Column: Integer; var Width: Integer);

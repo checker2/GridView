@@ -46,7 +46,7 @@ begin
   if Cell.Col = 3 then
   begin
     FShareState := FShareState xor (1 shl Cell.Row);
-    GridView1.InvalidateRow(Cell.Row);
+    GridView1.InvalidateCell(GridCell(0, Cell.Row));
   end;
 end;
 
