@@ -65,8 +65,8 @@ type
     Published Properties:
 
     Alignment -         Determines how the text is aligned within the section.
-    Caption -           Indicates the Title that represents the section. If not
-                        specified, the column caption is used.
+    Caption -           Specified the title of the section. If not specified,
+                        the column caption is used.
     Sections -          Lists the subsections.
     WordWrap -          Determines whether the section inserts soft carriage
                         returns so text wraps at the right margin of the section.
@@ -285,7 +285,7 @@ type
                      The result string consists of all top-level section headers,
                      separated by a dash.
     Columns -        Refers the list that contains the column.
-    Title -          Refers to the header section of the column.
+    HeaderSection -  Refers to the header section of the column.
 
     Published Properties:
 
@@ -363,9 +363,9 @@ type
     function GetCaption2: string;
     function GetEditAlignment: TAlignment;
     function GetGrid: TCustomGridView;
+    function GetHeaderSection: TGridHeaderSection;
     function GetPickList: TStrings;
     function GetPickListCount: Integer;
-    function GetTitle: TGridHeaderSection;
     function GetWidth: Integer;
     function IsPickListStored: Boolean;
     procedure ReadMultiline(Reader: TReader);
@@ -413,6 +413,7 @@ type
     property EditWordWrap: TGridEditWordWrap read FEditWordWrap write SetEditWordWrap default ewAuto;
     property FixedSize: Boolean read FFixedSize write SetFixedSize;
     property Grid: TCustomGridView read GetGrid;
+    property HeaderSection: TGridHeaderSection read GetHeaderSection;
     property MaxLength: Integer read FMaxLength write SetMaxLength default 0;
     property MaxWidth: Integer read FMaxWidth write SetMaxWidth default 10000;
     property MinWidth: Integer read FMinWidth write SetMinWidth default 0;
@@ -421,7 +422,6 @@ type
     property ReadOnly: Boolean read FReadOnly write SetReadOnly default False;
     property TabStop: Boolean read FTabStop write SetTabStop default True;
     property Tag: Integer read FTag write FTag default 0;
-    property Title: TGridHeaderSection read GetTitle;
     property Visible: Boolean read FVisible write SetVisible;
     property WantReturns: Boolean read FWantReturns write SetWantReturns default False;
     property Width: Integer read GetWidth write SetWidth stored False;
@@ -1370,6 +1370,7 @@ type
     TextRightIndent -      Specifies the indent of cells text from the right edge.
     TextTopIndent -        Specifies the indent of cells text from the top edge.
     TipsCell -             Indicates the cell for which tooltip is displayed.
+    TipsText -             Indicates the cell's tooltip text that is displayed.
     TopRow -               Specifies the index of the first visible scrollable
                            row in the grid. Same as VisOrigin.Row.
     VertScrollBar -        Represents the vertical scroll bar for the grid.
@@ -3166,7 +3167,7 @@ var
   S: TGridHeaderSection;
 begin
   Result := Caption;
-  S := Title;
+  S := HeaderSection;
   if S <> nil then
   begin
     if Length(S.Caption) <> 0 then Result := S.Caption;
@@ -3190,6 +3191,12 @@ begin
   if Columns <> nil then Result := TCustomGridView(Columns.Grid);
 end;
 
+function TCustomGridColumn.GetHeaderSection: TGridHeaderSection;
+begin
+  Result := nil;
+  if Grid <> nil then Result := Grid.GetHeaderSection(Index, -1);
+end;
+
 function TCustomGridColumn.GetPickList: TStrings;
 begin
   if FPickList = nil then FPickList := TStringList.Create;
@@ -3200,12 +3207,6 @@ function TCustomGridColumn.GetPickListCount: Integer;
 begin
   Result := 0;
   if FPickList <> nil then Result := FPickList.Count;
-end;
-
-function TCustomGridColumn.GetTitle: TGridHeaderSection;
-begin
-  Result := nil;
-  if Grid <> nil then Result := Grid.GetHeaderSection(Index, -1);
 end;
 
 function TCustomGridColumn.IsPickListStored: Boolean;
