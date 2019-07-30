@@ -640,6 +640,7 @@ type
     property OnEditButtonPress;
     property OnEditCanceled;
     property OnEditCanModify;
+    property OnEditCanShow;
     property OnEditChange;
     property OnEditCloseUp;
     property OnEditCloseUpEx;
