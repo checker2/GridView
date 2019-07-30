@@ -878,9 +878,15 @@ begin
     Caption := Field.DisplayLabel;
     EditMask := Field.EditMask;
     Visible := Field.Visible;
-    if AllowLookup then EditStyle := geDataList
-    else if PickListCount > 0 then EditStyle := gePickList
-    else EditStyle := geSimple;
+    { the geEllipsis inplace editor style is only allowed in a custom layout,
+      so no need to change it }
+    if EditStyle <> geEllipsis then
+      if AllowLookup then
+        EditStyle := geDataList
+      else if PickListCount > 0 then
+        EditStyle := gePickList
+      else
+        EditStyle := geSimple;
     ReadOnly := IsReadOnlyField(Field);
     MaxLength := 0;
     if Field.DataType in [ftString, ftWideString] then MaxLength := Field.Size;
