@@ -10266,7 +10266,7 @@ var
 begin
   CR := GetCellRect(Cell);
   GR := GetGridRect;
-  if (Fixed.Count > 0) and (Cell.Col >- Fixed.Count) then
+  if (Fixed.Count > 0) and (Cell.Col >= Fixed.Count) then
     GR.Left := GetFixedRect.Right;
   Result := IntersectRect(R, CR, GR);
   if not PartialOK then Result := EqualRect(R, CR);
