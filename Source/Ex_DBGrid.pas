@@ -275,6 +275,7 @@ type
     ChangeEditText -     Use ChangeEditText to manually change the inplace editor
                          text to the value selected by clicking the ellipsis
                          button.
+    ClearSelection -     Deselects all selected rows in the grid.
     Delete -             Deletes the active record.
     Insert -             Inserts a new, empty record in the dataset.
     LockLayout -         Increments the LayoutLock property when the column
@@ -472,6 +473,7 @@ type
     procedure ApplyEdit; override;
     procedure CancelEdit; override;
     procedure ChangeEditText(const S: string); virtual;
+    procedure ClearSelection;
     procedure Delete; virtual;
     function FindText(const FindText: string; Options: TFindOptions): Boolean; override;
     function GetGridRect: TRect; override;
@@ -1782,6 +1784,11 @@ procedure TCustomDBGridView.ChangeScale(M, D: Integer);
 begin
   inherited ChangeScale(M, D);
   if M <> D then FIndicatorWidth := MulDiv(FIndicatorWidth, M, D);
+end;
+
+procedure TCustomDBGridView.ClearSelection;
+begin
+  SelectedRows.Clear;
 end;
 
 function TCustomDBGridView.CreateColumns: TGridColumns;
