@@ -1828,6 +1828,7 @@ type
     procedure CreateWnd; override;
     procedure DoContextPopup(MousePos: TPoint; var Handled: Boolean); override;
     procedure DoExit; override;
+    procedure DoHeaderPopup(MousePos: TPoint; var Handled: Boolean); virtual;
     function DoMouseWheelDown(Shift: TShiftState; MousePos: TPoint): Boolean; override;
     function DoMouseWheelUp(Shift: TShiftState; MousePos: TPoint): Boolean; override;
     procedure DoStartDrag(var DragObject: TDragObject); override;
@@ -6518,6 +6519,19 @@ end;
 
 procedure TCustomGridView.DoContextPopup(MousePos: TPoint;
   var Handled: Boolean);
+begin
+  inherited DoContextPopup(MousePos, Handled);
+  if not Handled then DoHeaderPopup(MousePos, Handled);
+end;
+
+procedure TCustomGridView.DoExit;
+begin
+  ResetClickPos;
+  if CancelOnExit then Editing := False;
+  inherited DoExit;
+end;
+
+procedure TCustomGridView.DoHeaderPopup(MousePos: TPoint; var Handled: Boolean);
 var
   Menu: TPopupMenu;
   ClickEvent: TNotifyEvent;
@@ -6613,14 +6627,6 @@ begin
       Handled := True;
     end;
   end;
-  inherited;
-end;
-
-procedure TCustomGridView.DoExit;
-begin
-  ResetClickPos;
-  if CancelOnExit then Editing := False;
-  inherited DoExit;
 end;
 
 function TCustomGridView.DoMouseWheelDown(Shift: TShiftState; MousePos: TPoint): Boolean;
