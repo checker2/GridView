@@ -922,13 +922,14 @@ type
                            selected cell or selected state change.
     CheckClick -           Generates an OnCheckClick event. Called when user
                            click the check box with mouse or the SPACE key.
-    ColumnAutoSize -       Generates an OnColumnAutoSize event. Called when
+    ColumnSizeToFit -      Generates an OnColumnSizeToFit event. Called when
                            the user double-clicks the right side of the header
-                           before automatically resizing the column.
+                           before automatically change the width of the column
+                           to fit its contents.
     ColumnResize -         Generates an OnColumnResize event. Called after
-                           resizing a column with mouse.
-    ColumnResizing -       Generates an OnColumnResizing event. Called before
-                           resizing a column with mouse.
+                           resizing a column.
+    ColumnResizing -       Generates an OnColumnResizing event. Called when the
+                           column is resized with the mouse.
     CreateColumn -         Creates the TGridColumn object. Called internally
                            to add new column to the Columns list. To define you
                            own column class overwrite the GetColumnClass method.
@@ -1129,7 +1130,7 @@ type
                            the grid.
     GetColumnMaxWidth -    Returns the maximum width of the text of the specified
                            column in visible rows. Called to automatically change
-                           the width of a column by content.
+                           the width of column to fit its contents.
     GetColumnRect -        Returns the coordinates of the column in the grid.
     GetColumnsRect -       Returns the coordinates of the column range in
                            the grid.
@@ -1168,8 +1169,8 @@ type
     GetRowTopBottom -      Returns top and bottom coordinates of the row in the
                            grid.
     GetSectionAt -         Returns the header section located at a specified
-                           position within the grid. If there is no row located
-                           at the specified position returns null.
+                           position within the grid. If there is no section
+                           located at the specified position returns null.
     InvalidateCell -       Invalidates the region occupied by a cell.
     InvalidateCheck -      Invalidates the region occupied by a check box of
                            specified cell.
@@ -1224,6 +1225,8 @@ type
     MakeCellVisible -      Makes the specified cell visible to the user,
                            scrolling the grid as necessary.
     SetCursor -            Changes the current cell to a specified cell.
+    SizeAllColumnsToFit -  Changes the width of all columns to fit their contents.
+    SizeColumnToFit -      Changes the width of column to fit its contents.
     UndoEdit -             Resets the inplace editor. Called when AlwaysEdit is
                            set to True and user has pressed the ESCAPE key.
                            Override this method if you need to perform additional
@@ -1398,8 +1401,8 @@ type
     OnChangeRows -         Occurs after changing rows.
     OnChanging -           Occurs before a cell in the grid is selected.
     OnCheckClick -         Occurs when the user clicks cell check box.
-    OnColumnAutoSize -     Occurs before the with of a column changes to
-                           an automatically calculated width.
+    OnColumnSizeToFit -    Occurs before the with of a column changes to fit
+                           its contents.
     OnColumnResize -       Occurs after the with of a column changes.
     OnColumnResizing -     Occurs before changing the column with.
     OnDraw -               Occurs when a grid needs to be drawn.
@@ -1582,7 +1585,7 @@ type
     FTextTopIndent: Integer;
     FHitTest: TPoint;
     FClickPos: TGridCell;
-    FColumnsSizing: Boolean;
+    FColumnsResize: Boolean;
     FColumnsFullDrag: Boolean;
     FColumnClick: Boolean;
     FColResizing: Boolean;
@@ -1640,7 +1643,7 @@ type
     FOnDraw: TGridDrawEvent;
     FOnDrawCell: TGridDrawCellEvent;
     FOnDrawHeader: TGridDrawHeaderEvent;
-    FOnColumnAutoSize: TGridColumnResizeEvent;
+    FOnColumnSizeToFit: TGridColumnResizeEvent;
     FOnColumnResizing: TGridColumnResizeEvent;
     FOnColumnResize: TGridColumnResizeEvent;
     FOnHeaderClick: TGridHeaderClickEvent;
@@ -1808,10 +1811,10 @@ type
     procedure ChangeScale(M, D: Integer); override;
     procedure Changing(var Cell: TGridCell; var Selected: Boolean); virtual;
     procedure CheckClick(Cell: TGridCell); virtual;
-    procedure ColumnAutoSize(Column: Integer; var Width: Integer); virtual;
     procedure ColumnResize(Column: Integer; var Width: Integer); virtual;
     procedure ColumnResizing(Column: Integer; var Width: Integer); virtual;
     procedure ColumnsChange(Sender: TObject); virtual;
+    procedure ColumnSizeToFit(Column: Integer; var Width: Integer); virtual;
     function CompareStrings(const S1, S2: string; WholeWord, MatchCase: Boolean): Boolean; virtual;
     function CreateColumn(Columns: TGridColumns): TCustomGridColumn; virtual;
     function CreateColumns: TGridColumns; virtual;
@@ -2009,6 +2012,8 @@ type
     procedure LockUpdate;
     procedure MakeCellVisible(Cell: TGridCell; PartialOK: Boolean); virtual;
     procedure SetCursor(Cell: TGridCell; Selected, Visible: Boolean); virtual;
+    procedure SizeAllColumnsToFit;
+    procedure SizeColumnToFit(ColumnIndex: Integer);
     procedure UndoEdit; virtual;
     procedure UnLockUpdate(Redraw: Boolean);
     procedure UpdateCursor; virtual;
@@ -2050,7 +2055,7 @@ type
     property ColumnClick: Boolean read FColumnClick write FColumnClick default True;
     property Columns: TGridColumns read FColumns write SetColumns;
     property ColumnsFullDrag: Boolean read FColumnsFullDrag write FColumnsFullDrag default False;
-    property ColumnsSizing: Boolean read FColumnsSizing write FColumnsSizing default True;
+    property ColumnsResize: Boolean read FColumnsResize write FColumnsResize default True;
     property CursorKeys: TGridCursorKeys read FCursorKeys write SetCursorKeys default [gkArrows, gkMouse, gkMouseWheel];
     property DefaultEditMenu: Boolean read FDefaultEditMenu write FDefaultEditMenu default False;
     property DefaultHeaderMenu: Boolean read FDefaultHeaderMenu write FDefaultHeaderMenu default False;
@@ -2118,9 +2123,9 @@ type
     property OnChangeRows: TNotifyEvent read FOnChangeRows write FOnChangeRows;
     property OnChanging: TGridChangingEvent read FOnChanging write FOnChanging;
     property OnCheckClick: TGridCellNotifyEvent read FOnCheckClick write FOnCheckClick;
-    property OnColumnAutoSize: TGridColumnResizeEvent read FOnColumnAutoSize write FOnColumnAutoSize;
     property OnColumnResizing: TGridColumnResizeEvent read FOnColumnResizing write FOnColumnResizing;
     property OnColumnResize: TGridColumnResizeEvent read FOnColumnResize write FOnColumnResize;
+    property OnColumnSizeToFit: TGridColumnResizeEvent read FOnColumnSizeToFit write FOnColumnSizeToFit;
     property OnDraw: TGridDrawEvent read FOnDraw write FOnDraw;
     property OnDrawCell: TGridDrawCellEvent read FOnDrawCell write FOnDrawCell;
     property OnDrawHeader: TGridDrawHeaderEvent read FOnDrawHeader write FOnDrawHeader;
@@ -2251,9 +2256,9 @@ type
     property OnChanging;
     property OnCheckClick;
     property OnClick;
-    property OnColumnAutoSize;
     property OnColumnResizing;
     property OnColumnResize;
+    property OnColumnSizeToFit;
     property OnContextPopup;
     property OnDblClick;
     property OnDragDrop;
@@ -5290,7 +5295,7 @@ begin
   FRightClickSelect := True;
   FAllowSelect := True;
   FCursorKeys := [gkArrows, gkMouse, gkMouseWheel];
-  FColumnsSizing := True;
+  FColumnsResize := True;
   FColumnClick := True;
   FEditCell := GridCell(-1, -1);
   FCheckStyle := csWin95;
@@ -6425,11 +6430,6 @@ begin
   end;
 end;
 
-procedure TCustomGridView.ColumnAutoSize(Column: Integer; var Width: Integer);
-begin
-  if Assigned(FOnColumnAutoSize) then FOnColumnAutoSize(Self, Column, Width);
-end;
-
 procedure TCustomGridView.ColumnResize(Column: Integer; var Width: Integer);
 begin
   if Assigned(FOnColumnResize) then FOnColumnResize(Self, Column, Width);
@@ -6438,6 +6438,11 @@ end;
 procedure TCustomGridView.ColumnResizing(Column: Integer; var Width: Integer);
 begin
   if Assigned(FOnColumnResizing) then FOnColumnResizing(Self, Column, Width);
+end;
+
+procedure TCustomGridView.ColumnSizeToFit(Column: Integer; var Width: Integer);
+begin
+  if Assigned(FOnColumnSizeToFit) then FOnColumnSizeToFit(Self, Column, Width);
 end;
 
 function TCustomGridView.CreateColumn(Columns: TGridColumns): TCustomGridColumn;
@@ -7768,6 +7773,12 @@ begin
       end;
     VK_F2:
       Editing := True;
+    VK_ADD:
+      if Shift >= [ssCtrl, ssShift] then
+      begin
+        SizeAllColumnsToFit;
+        Key := 0;
+      end;
   end;
 end;
 
@@ -7818,7 +7829,6 @@ end;
 procedure TCustomGridView.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   S: TGridHeaderSection;
-  I, W: Integer;
   C, P: TGridCell;
   AllowClicking: Boolean;
 begin
@@ -7836,23 +7846,7 @@ begin
       if S <> nil then
       begin
         if ssDouble in Shift then
-        begin
-          { set the maximum width of a column by double clicking on the right
-            side of the header }
-          I := S.ResizeColumnIndex;
-          if I < Columns.Count then
-          begin
-            W := Min(Columns[I].MaxWidth, GetColumnMaxWidth(I));
-            ColumnAutoSize(I, W);
-            ColumnResize(I, W);
-            FColResizing := True;
-            try
-              Columns[I].Width := W;
-            finally
-              FColResizing := False;
-            end;
-          end;
-        end
+          SizeColumnToFit(S.ResizeColumnIndex)
         else
           StartColResize(S, X, Y);
       end
@@ -9033,6 +9027,37 @@ begin
   if IsFocusAllowed then PaintFocus;
 end;
 
+procedure TCustomGridView.SizeAllColumnsToFit;
+var
+  I: Integer;
+  Column: TGridColumn;
+begin
+  if ColumnsResize then
+    for I := 0 to Columns.Count - 1 do
+    begin
+      Column := Columns[I];
+      if Column.Visible and not Column.FixedSize then SizeColumnToFit(I);
+    end;
+end;
+
+procedure TCustomGridView.SizeColumnToFit(ColumnIndex: Integer);
+var
+  W: Integer;
+begin
+  if (ColumnIndex >= 0) and (ColumnIndex < Columns.Count) then
+  begin
+    W := Min(Columns[ColumnIndex].MaxWidth, GetColumnMaxWidth(ColumnIndex));
+    ColumnSizeToFit(ColumnIndex, W);
+    ColumnResize(ColumnIndex, W);
+    FColResizing := True;
+    try
+      Columns[ColumnIndex].Width := W;
+    finally
+      FColResizing := False;
+    end;
+  end;
+end;
+
 procedure TCustomGridView.StartColResize(Section: TGridHeaderSection; X, Y: Integer);
 begin
   FColResizeSection := Section;
@@ -9942,7 +9967,7 @@ function TCustomGridView.GetResizeSectionAt(X, Y: Integer): TGridHeaderSection;
         if PtInRect(R, Point(X, Y)) then
         begin
           { some columns cannot resize }
-          if (C < Columns.Count) and (Columns[C].FixedSize or (not ColumnsSizing)) then
+          if (C < Columns.Count) and (Columns[C].FixedSize or (not ColumnsResize)) then
           begin
             Section := nil;
             Result := False;
