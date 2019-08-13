@@ -1285,6 +1285,10 @@ type
     Columns -              Describes the properties of the columns in the grid.
     ColumnsFullDrag -      Specifies whether columns are repainted when they
                            are dragged.
+    ContextPopupCol -      Specifies the index of the column above which the
+                           context menu is displayed.
+    ContextPopupRow -      Specifies the index of the row above which the
+                           context menu is displayed.
     CursorKeys -           Defines the keys that can be used to move the cursor
                            in a grid:
                              gkArrows -     Move the cursor with arrows.
@@ -1697,6 +1701,8 @@ type
     FOnGetGridColor: TGridColorEvent;
     FFindDialog: TGridFindDialog;
     FOnTextNotFound: TGridFindTextEvent;
+    FContextPopupCol: Integer;
+    FContextPopupRow: Integer;
     function GetCell(Col, Row: Longint): string;
     function GetChecked(Col, Row: Longint): Boolean;
     function GetCheckBoxEnabled(Col, Row: Longint): Boolean;
@@ -2057,6 +2063,8 @@ type
     property Columns: TGridColumns read FColumns write SetColumns;
     property ColumnsFullDrag: Boolean read FColumnsFullDrag write FColumnsFullDrag default False;
     property ColumnsResize: Boolean read FColumnsResize write FColumnsResize default True;
+    property ContextPopupCol: Integer read FContextPopupCol;
+    property ContextPopupRow: Integer read FContextPopupRow;
     property CursorKeys: TGridCursorKeys read FCursorKeys write SetCursorKeys default [gkArrows, gkMouse, gkMouseWheel];
     property DefaultEditMenu: Boolean read FDefaultEditMenu write FDefaultEditMenu default False;
     property DefaultHeaderMenu: Boolean read FDefaultHeaderMenu write FDefaultHeaderMenu default False;
@@ -6520,6 +6528,8 @@ end;
 procedure TCustomGridView.DoContextPopup(MousePos: TPoint;
   var Handled: Boolean);
 begin
+  FContextPopupCol := GetColumnAt(MousePos.X, MousePos.Y);
+  FContextPopupRow := GetRowAt(MousePos.X, MousePos.Y);
   inherited DoContextPopup(MousePos, Handled);
   if not Handled then DoHeaderPopup(MousePos, Handled);
 end;
