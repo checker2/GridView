@@ -6586,12 +6586,9 @@ begin
       for I := 0 to Columns.Count - 1 do
       begin
         Column := Columns[I];
-        if Column.DefaultPopup then
-        begin
-          Item := NewItem(Column.Caption2, 0, Column.Visible, True, ClickEvent, 0, '');
-          Item.Tag := I;
-          Menu.Items.Add(Item);
-        end;
+        Item := NewItem(Column.Caption2, 0, Column.Visible, Column.DefaultPopup, ClickEvent, 0, '');
+        Item.Tag := I;
+        Menu.Items.Add(Item);
       end;
       { for OnHeaderDetailsClick event handler add "Details..." item }
       if Assigned(FOnHeaderDetailsClick) then
