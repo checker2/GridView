@@ -622,7 +622,7 @@ type
     property OnChanging;
     property OnCheckClick;
     property OnClick;
-    property OnColumnAutoSize;
+    property OnColumnSizeToFit;
     property OnColumnResizing;
     property OnColumnResize;
     property OnContextPopup;
