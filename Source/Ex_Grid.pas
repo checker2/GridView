@@ -1109,6 +1109,9 @@ type
     AcquireFocus -         Changes focus to the grid, if possible. Returns False
                            if grid can not be focused.
     ApplyEdit -            Applies text changes from the inplace editor.
+    ApplyEditText -        Calls SetEditText method and handles event exceptions.
+                           Called internally before changing the current cell or
+                           hiding inlace editor.
     CancelEdit -           Cancels editind, discards changes in the inplace
                            editor and hides it. Called when AlwaysEdit is
                            set to False and user has pressed the ESCAPE key.
@@ -1241,15 +1244,12 @@ type
     UpdateEditContents -   Refreshes the inplace editor. Use this method to
                            update the text of the editor if cells data have
                            changed during editing.
-    UpdateEditText -       Calls SetEditText method and handles event exceptions.
-                           Called internally before changing the current cell or
-                           hiding inlace editor.
     UpdateFocus -          Sets focus to the grid, if possible, then show the
                            inplace edit, if necessary.
     UpdateSelection -      Determines whether the specified cell can be selected,
                            returns the closest available cell to select. Called
                            internaly before change the cursor position.
-    UpdateText -           Same as UpdateEditText.
+    UpdateText -           Same as ApplyEditText.
 
     Public Properties:
 
@@ -1944,6 +1944,7 @@ type
     destructor Destroy; override;
     function AcquireFocus: Boolean; virtual;
     procedure ApplyEdit; virtual;
+    procedure ApplyEditText; virtual;
     procedure CancelEdit; virtual;
     procedure DefaultDrawCell(Cell: TGridCell; Rect: TRect); virtual;
     procedure DefaultDrawHeader(Section: TGridHeaderSection; Rect: TRect); virtual;
@@ -2028,7 +2029,6 @@ type
     procedure UpdateColors; virtual;
     procedure UpdateEdit(Activate: Boolean); virtual;
     procedure UpdateEditContents(SaveText: Boolean); virtual;
-    procedure UpdateEditText; virtual;
     procedure UpdateFixed; virtual;
     procedure UpdateFocus; virtual;
     procedure UpdateFonts; virtual;
@@ -5702,7 +5702,7 @@ begin
   end
   else if (not Value) and FEditing then
   begin
-    UpdateEditText;
+    ApplyEditText;
     if not AlwaysEdit then HideEdit;
   end;
   if WasEditing <> Editing then ChangeEditing;
@@ -9254,6 +9254,36 @@ begin
   Editing := False;
 end;
 
+procedure TCustomGridView.ApplyEditText;
+var
+  EditFocused: Boolean;
+  EditText: string;
+begin
+  if (not ReadOnly) and (Edit <> nil) and (not IsCellReadOnly(EditCell)) then
+  begin
+    EditFocused := Editing;
+    { text input can be canceled by throwing an exception in the
+      OnSetEditText event }
+    try
+      EditText := Edit.Text;
+      try
+        SetEditText(EditCell, EditText);
+      finally
+        Edit.Text := EditText;
+      end;
+    except
+      on E: Exception do
+      begin
+        MakeCellVisible(CellFocused, False);
+        { if the input line is visible, then put the focus on it, otherwise
+          it will be hidden after opening the error message box }
+        if EditFocused then Edit.SetFocus;
+        raise;
+      end;
+    end;
+  end;
+end;
+
 procedure TCustomGridView.CancelEdit;
 var
   Cell: TGridCell;
@@ -10538,36 +10568,6 @@ begin
   end;
 end;
 
-procedure TCustomGridView.UpdateEditText;
-var
-  EditFocused: Boolean;
-  EditText: string;
-begin
-  if (not ReadOnly) and (Edit <> nil) and (not IsCellReadOnly(EditCell)) then
-  begin
-    EditFocused := Editing;
-    { text input can be canceled by throwing an exception in the
-      OnSetEditText event }
-    try
-      EditText := Edit.Text;
-      try
-        SetEditText(EditCell, EditText);
-      finally
-        Edit.Text := EditText;
-      end;
-    except
-      on E: Exception do
-      begin
-        MakeCellVisible(CellFocused, False);
-        { if the input line is visible, then put the focus on it, otherwise
-          it will be hidden after opening the error message box }
-        if EditFocused then Edit.SetFocus;
-        raise;
-      end;
-    end;
-  end;
-end;
-
 procedure TCustomGridView.UpdateFixed;
 begin
   Fixed.SetCount(Fixed.Count);
@@ -10700,7 +10700,7 @@ end;
 
 procedure TCustomGridView.UpdateText;
 begin
-  UpdateEditText;
+  ApplyEditText;
 end;
 
 procedure TCustomGridView.UpdateVisOriginSize;

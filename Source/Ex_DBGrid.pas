@@ -471,6 +471,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure ApplyEdit; override;
+    procedure ApplyEditText; override;
     procedure CancelEdit; override;
     procedure ChangeEditText(const S: string); virtual;
     procedure ClearSelection;
@@ -499,7 +500,6 @@ type
     procedure UnLockLayout(CancelChanges: Boolean);
     procedure UnLockScroll(CancelScroll: Boolean);
     procedure UpdateCursorPos(ShowCursor: Boolean); virtual;
-    procedure UpdateEditText; override;
     procedure UpdateLayout; virtual;
     procedure UpdateRowCount; virtual;
     procedure UpdateSelection(var Cell: TGridCell; var Selected: Boolean); override;
@@ -3032,15 +3032,15 @@ begin
   end;
 end;
 
-procedure TCustomDBGridView.UpdateEditText;
-begin
-  if Datalink.Active then FDataLink.UpdateData;
-end;
-
 procedure TCustomDBGridView.ApplyEdit;
 begin
   { the update of the data source is called in SetEditText }
   inherited;
+end;
+
+procedure TCustomDBGridView.ApplyEditText;
+begin
+  if Datalink.Active then FDataLink.UpdateData;
 end;
 
 procedure TCustomDBGridView.CancelEdit;
