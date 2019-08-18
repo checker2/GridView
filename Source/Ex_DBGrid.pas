@@ -192,10 +192,10 @@ type
     function GetGrid: TCustomDBGridView;
     procedure WMKillFocus(var Message: TWMSetFocus); message WM_KILLFOCUS;
   protected
+    procedure ApplyListValue(Accept: Boolean); override;
     function GetDropList: TWinControl; override;
     procedure UpdateListBounds; override;
     procedure UpdateListItems; override;
-    procedure UpdateListValue(Accept: Boolean); override;
     procedure UpdateStyle; override;
   public
     procedure CloseUp(Accept: Boolean); override;
@@ -1033,7 +1033,7 @@ begin
   ListBox.KeyValue := Field.DataSet.FieldByName(Field.KeyFields).Value;
 end;
 
-procedure TDBGridEdit.UpdateListValue(Accept: Boolean);
+procedure TDBGridEdit.ApplyListValue(Accept: Boolean);
 var
   ListValue: Variant;
   MasterField: TField;

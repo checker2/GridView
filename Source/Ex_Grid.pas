@@ -727,6 +727,9 @@ type
   {
     Protected Methods:
 
+    ApplyListValue -   Calls the EditCloseUp grid event and sets selected item text
+                       to the edit. Called internally when the drop-down list
+                       closes up.
     GetDropList -      Creates the popup list instance.
 
     Public Methods:
@@ -816,6 +819,7 @@ type
     procedure CMMouseEnter(var Message: TMessage); message CM_MOUSEENTER;
     procedure CMMouseLeave(var Message: TMessage); message CM_MOUSELEAVE;
   protected
+    procedure ApplyListValue(Accept: Boolean); virtual;
     procedure Change; override;
     procedure CreateParams(var Params: TCreateParams); override;
     procedure DblClick; override;
@@ -839,7 +843,6 @@ type
     procedure UpdateList; virtual;
     procedure UpdateListBounds; virtual;
     procedure UpdateListItems; virtual;
-    procedure UpdateListValue(Accept: Boolean); virtual;
     procedure UpdateStyle; virtual;
     procedure WndProc(var Message: TMessage); override;
   public
@@ -1100,9 +1103,6 @@ type
                            list is displayed.
     UpdateListItems -      Fill the drop-down item list and sets the index of
                            the selected item.
-    UpdateListValue -      Calls EditCloseUp and sets selected item text to
-                           the inplace edtior. Called internally when the
-                           drop-down list closes up.
 
     Public Methods:
 
@@ -4315,6 +4315,28 @@ begin
   end;
 end;
 
+procedure TCustomGridEdit.ApplyListValue(Accept: Boolean);
+var
+  I: Integer;
+  Items: TStrings;
+  ItemText: string;
+begin
+  if (FActiveList <> nil) and (FActiveList is TGridListBox) then
+  begin
+    { selected text can be rejected, accepted or modified using OnEditCloseUp
+      grid event }
+    I := TGridListBox(FActiveList).ItemIndex;
+    Items := TGridListBox(FActiveList).Items;
+    if I <> -1 then ItemText := Items[I] else ItemText := '';
+    if Grid <> nil then Grid.EditCloseUp(Grid.EditCell, Items, I, ItemText, Accept);
+    if Accept and (I <> -1) then
+    begin
+      Text := ItemText;
+      SendMessage(Handle, EM_SETSEL, 0, -1);
+    end;
+  end;
+end;
+
 procedure TCustomGridEdit.Change;
 begin
   if Grid <> nil then Grid.EditChange(Grid.EditCell);
@@ -4766,28 +4788,6 @@ begin
   end;
 end;
 
-procedure TCustomGridEdit.UpdateListValue(Accept: Boolean);
-var
-  I: Integer;
-  Items: TStrings;
-  ItemText: string;
-begin
-  if (FActiveList <> nil) and (FActiveList is TGridListBox) then
-  begin
-    { selected text can be rejected, accepted or modified using OnEditCloseUp
-      grid event }
-    I := TGridListBox(FActiveList).ItemIndex;
-    Items := TGridListBox(FActiveList).Items;
-    if I <> -1 then ItemText := Items[I] else ItemText := '';
-    if Grid <> nil then Grid.EditCloseUp(Grid.EditCell, Items, I, ItemText, Accept);
-    if Accept and (I <> -1) then
-    begin
-      Text := ItemText;
-      SendMessage(Handle, EM_SETSEL, 0, -1);
-    end;
-  end;
-end;
-
 procedure TCustomGridEdit.UpdateStyle;
 var
   Style: TGridEditStyle;
@@ -4904,7 +4904,7 @@ begin
     { set ClosingUp state for WMKillFocus }
     Inc(FCloseUpCount);
     try
-      UpdateListValue(Accept);
+      ApplyListValue(Accept);
       { return focus to the inplace editor in case the OnEditCloseUp event
         handler displayed a dialog, for example, a color dialog }
       SetFocus;
