@@ -1224,14 +1224,15 @@ type
     LockUpdate -           Disables grid redraw.
     MakeCellVisible -      Makes the specified cell visible to the user,
                            scrolling the grid as necessary.
+    ResetEdit -            Resets the inplace editor. Called when AlwaysEdit is
+                           set to True and user has pressed the ESCAPE key.
+                           By default sends WM_UNDO to the inplace editor to
+                           undo the last operation.  Override this method if you
+                           need to perform additional actions after cancel editing.
+                           For example, cancel changes to the data source.
     SetCursor -            Changes the current cell to a specified cell.
     SizeAllColumnsToFit -  Changes the width of all columns to fit their contents.
     SizeColumnToFit -      Changes the width of column to fit its contents.
-    UndoEdit -             Resets the inplace editor. Called when AlwaysEdit is
-                           set to True and user has pressed the ESCAPE key.
-                           Override this method if you need to perform additional
-                           actions after cancel editing. For example, cancel
-                           changes to the data source.
     UnLockUpdate -         Enables grid redraw.
     UpdateCursor -         Verifies that the current cell can accept the cursor,
                            then updates the position of the cursor if necessary.
@@ -2018,10 +2019,10 @@ type
     function IsRowVisible(Row: Integer): Boolean;
     procedure LockUpdate;
     procedure MakeCellVisible(Cell: TGridCell; PartialOK: Boolean); virtual;
+    procedure ResetEdit; virtual;
     procedure SetCursor(Cell: TGridCell; Selected, Visible: Boolean); virtual;
     procedure SizeAllColumnsToFit;
     procedure SizeColumnToFit(ColumnIndex: Integer);
-    procedure UndoEdit; virtual;
     procedure UnLockUpdate(Redraw: Boolean);
     procedure UpdateCursor; virtual;
     procedure UpdateColors; virtual;
@@ -7822,7 +7823,7 @@ begin
       if not AlwaysEdit then
         CancelEdit
       else
-        UndoEdit;
+        ResetEdit;
   end;
 end;
 
@@ -10438,7 +10439,7 @@ begin
     if Visible then MakeCellVisible(CellFocused, False);
 end;
 
-procedure TCustomGridView.UndoEdit;
+procedure TCustomGridView.ResetEdit;
 begin
   if (FEdit <> nil) and EditCanUndo(EditCell) then FEdit.Perform(WM_UNDO, 0, 0);
 end;

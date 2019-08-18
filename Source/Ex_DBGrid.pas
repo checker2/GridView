@@ -493,9 +493,9 @@ type
     procedure LockLayout;
     procedure LockScroll;
     procedure MakeCellVisible(Cell: TGridCell; PartialOK: Boolean); override;
+    procedure ResetEdit; override;
     procedure SelectAll;
     procedure SetCursor(Cell: TGridCell; Selected, Visible: Boolean); override;
-    procedure UndoEdit; override;
     procedure UnLockLayout(CancelChanges: Boolean);
     procedure UnLockScroll(CancelScroll: Boolean);
     procedure UpdateCursorPos(ShowCursor: Boolean); virtual;
@@ -3160,7 +3160,7 @@ begin
   inherited SetCursor(Cell, Selected, Visible);
 end;
 
-procedure TCustomDBGridView.UndoEdit;
+procedure TCustomDBGridView.ResetEdit;
 begin
   if DataLink.FModified then DataLink.Reset;
 end;
