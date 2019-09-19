@@ -2963,7 +2963,7 @@ var
   OldActive: Integer;
 begin
   if DataLink.Active and (Row >= 0) and
-    ((FSelectedRows.Count > 1) or (Row <> CellFocused.Row)) then
+    ((FSelectedRows.Count > 1) or ((Row <> CellFocused.Row) and not DataLink.Editing)) then
   begin
     OldActive := DataLink.ActiveRecord;
     try
