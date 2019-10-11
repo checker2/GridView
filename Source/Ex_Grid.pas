@@ -1794,6 +1794,7 @@ type
     procedure WMEraseBkgnd(var Message: TWMEraseBkgnd); message WM_ERASEBKGND;
     procedure WMThemeThanged(var Message: TMessage); message WM_THEMECHANGED;
     procedure WMTimer(var Message: TWMTimer); message WM_TIMER;
+    procedure WMUser(var Message: TMessage); message WM_USER;
     procedure CNThemeThanged(var Message: TMessage); message CN_THEMECHANGED;
     procedure CMCancelMode(var Message: TCMCancelMode); message CM_CANCELMODE;
     procedure CMEnabledChanged(var Message: TMessage); message CM_ENABLEDCHANGED;
@@ -6161,6 +6162,11 @@ begin
   Editing := True;
 end;
 
+procedure TCustomGridView.WMUser(var Message: TMessage);
+begin
+  UpdateEdit(AlwaysEdit);
+end;
+
 procedure TCustomGridView.CNThemeThanged(var Message: TMessage);
 begin
   inherited;
@@ -7835,9 +7841,11 @@ begin
   UpdateRows;
   UpdateColors;
   UpdateFonts;
-  UpdateEdit(AlwaysEdit);
-  FCellSelected := AlwaysSelected;
   UpdateCursor;
+  FCellSelected := AlwaysSelected;
+  { show inplace editor asynchronously to avoid access violation if grid data
+    is created in the FormCreate event handler }
+  if AlwaysSelected then PostMessage(Handle, WM_USER, 0, 0);
 end;
 
 procedure TCustomGridView.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
